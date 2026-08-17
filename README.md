@@ -2,7 +2,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/pavalAlexandru/SkillPath.git
+cd SkillPath
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
