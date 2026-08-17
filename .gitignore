@@ -39,3 +39,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Vim / Neovim
+*~
+.*.swp
+.*.swo
+*.swp
+*.swo
+*.swn
+*.un~
+Session.vim
+.netrwhist
+.tags
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Neovim local state/config (project-local, if present)
+.nvim/
+.nvimlog
