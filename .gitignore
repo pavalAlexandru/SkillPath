@@ -60,3 +60,15 @@ Session.vim
 # Neovim local state/config (project-local, if present)
 .nvim/
 .nvimlog
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Vitest 
+/coverage
+/.vitest/
