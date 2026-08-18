@@ -1,1 +1,1 @@
-import "@testing-library/jest-dom";
+// test setup (jest-dom removed for vitest compatibility)
