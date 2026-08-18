@@ -1,0 +1,144 @@
+.header {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: #f8fafc;
+}
+
+.loginButton,
+.primaryButton,
+.secondaryButton {
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.loginButton,
+.primaryButton {
+  background: #22d3ee;
+  color: #020617;
+}
+
+.loginButton {
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+}
+
+.primaryButton {
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+}
+
+.secondaryButton {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+}
+
+.heroSection {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 4rem 0 5rem;
+  text-align: center;
+}
+
+.kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  background: rgba(34, 211, 238, 0.1);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #67e8f9;
+}
+
+.heroTitle {
+  max-width: 48rem;
+  margin: 0 auto;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  font-weight: 900;
+  color: #fff;
+}
+
+.heroText {
+  max-width: 42rem;
+  margin: 1.5rem auto 0;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+.heroActions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.featuresSection {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 0 0 5rem;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.featureCard {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+}
+
+.featureLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #67e8f9;
+}
+
+.featureTitle {
+  margin-top: 1rem;
+  font-size: 2rem;
+  line-height: 1.2;
+  color: #f8fafc;
+}
+
+.featureText {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .featuresSection {
+    grid-template-columns: 1fr;
+  }
+
+  .heroSection {
+    padding-top: 3rem;
+  }
+}
