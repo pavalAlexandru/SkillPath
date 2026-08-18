@@ -8,6 +8,7 @@ Clone the repository and install dependencies:
 git clone https://github.com/pavalAlexandru/SkillPath.git
 cd SkillPath
 npm install
+npx playwright install
 ```
 
 Then, run the development server:
