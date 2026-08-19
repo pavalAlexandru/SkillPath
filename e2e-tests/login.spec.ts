@@ -68,7 +68,10 @@ test.describe("Login Flow", () => {
 
     // 2. Fill in the student credentials (use your actual test DB credentials)
     await page.fill('input[type="email"]', "student@test.com");
-    await page.fill('input[type="password"]', "your-test-password");
+    await page.fill(
+      'input[type="password"]',
+      process.env.TEST_USER_PASSWORD as string,
+    );
 
     // 3. Click the login button
     await page.click('button:has-text("Conectare")');
@@ -85,7 +88,10 @@ test.describe("Login Flow", () => {
 
     // 2. Fill in the mentor credentials (use your actual test DB credentials)
     await page.fill('input[type="email"]', "mentor@test.com");
-    await page.fill('input[type="password"]', "your-test-password");
+    await page.fill(
+      'input[type="password"]',
+      process.env.TEST_USER_PASSWORD as string,
+    );
 
     // 3. Click the login button
     await page.click('button:has-text("Conectare")');
