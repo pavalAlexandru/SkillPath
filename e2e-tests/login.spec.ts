@@ -67,7 +67,7 @@ test.describe("Login Flow", () => {
     await page.goto("/login");
 
     // 2. Fill in the student credentials (use your actual test DB credentials)
-    await page.fill('input[type="email"]', "student@test.com");
+    await page.fill('input[type="email"]', "student@skillpath.ro");
     await page.fill(
       'input[type="password"]',
       process.env.TEST_USER_PASSWORD as string,
@@ -87,7 +87,7 @@ test.describe("Login Flow", () => {
     await page.goto("/login");
 
     // 2. Fill in the mentor credentials (use your actual test DB credentials)
-    await page.fill('input[type="email"]', "mentor@test.com");
+    await page.fill('input[type="email"]', "mentor@skillpath.ro");
     await page.fill(
       'input[type="password"]',
       process.env.TEST_USER_PASSWORD as string,
