@@ -1,6 +1,6 @@
 import { supabase } from "./client";
 
-export type AppRole = "student" | "mentor" | "admin";
+export type AppRole = "student" | "mentor";
 
 export async function getSession() {
   const { data, error } = await supabase.auth.getSession();
@@ -27,7 +27,7 @@ export function getUserRole(
 ): AppRole | null {
   const role = user?.user_metadata?.role;
 
-  if (role === "student" || role === "mentor" || role === "admin") {
+  if (role === "student" || role === "mentor" ) {
     return role;
   }
 
