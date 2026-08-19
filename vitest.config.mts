@@ -8,10 +8,28 @@ export default defineConfig({
     environment: "happy-dom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["unit-tests/**/*.{test,spec}.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "lcov"],
+      include: [
+        "app/(auth)/login/page.tsx",
+        "server/supabase/auth.ts",
+        "server/supabase/client.ts",
+        "server/supabase/index.ts",
+        "server/supabase/server.ts",
+        "middleware.ts",
+      ],
+      thresholds: {
+        lines: 75,
+        functions: 75,
+        branches: 75,
+        statements: 75,
+      },
+    },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./"),
+      "@": path.resolve(import.meta.dirname, "./"),
     },
   },
 });
