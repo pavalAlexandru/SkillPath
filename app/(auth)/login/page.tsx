@@ -93,7 +93,8 @@ export default function LoginPage() {
           />
         </div>
         <Button
-          type="submit"
+          type="button"
+          onClick={handleLogin as any}
           variant="primary"
           className="w-full"
           disabled={loading}
