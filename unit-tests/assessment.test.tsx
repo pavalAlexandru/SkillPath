@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateAssessmentScore } from '@/server/supabase/assessmentService';
+import { calculateAssessmentScore } from '@/components/assessment/AssessmentRunner';
 import { QuestionItem } from '@/types/assesments';
 
 const testQuestions: QuestionItem[] = [
