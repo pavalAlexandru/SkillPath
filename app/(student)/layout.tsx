@@ -7,6 +7,7 @@ export default function StudentLayout({
 }) {
     const navItems = [
         { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Teste', href: '/assessment' },
         { label: 'Propune Întrebare', href: '/propose' },
         { label: 'Profil & Progres', href: '/profile' },
     ];
