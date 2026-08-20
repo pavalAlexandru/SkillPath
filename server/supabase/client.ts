@@ -1,5 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
-
+import type { Database } from "./database.types";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -10,11 +10,11 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const globalForSupabase = globalThis as unknown as {
-  supabase: ReturnType<typeof createBrowserClient>;
+  supabase: ReturnType<typeof createBrowserClient<Database>>;
 };
 
 export const supabase =
-  globalForSupabase.supabase || createBrowserClient(supabaseUrl, supabaseKey);
+  globalForSupabase.supabase || createBrowserClient<Database>(supabaseUrl, supabaseKey);
 
 if (process.env.NODE_ENV !== "production") {
   globalForSupabase.supabase = supabase;
