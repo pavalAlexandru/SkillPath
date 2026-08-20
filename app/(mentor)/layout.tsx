@@ -6,6 +6,7 @@ export default function MentorLayout({
     children: React.ReactNode;
 }) {
     const navItems = [
+        {label: 'Dashboard', href: '/overview'},
         { label: 'Categorii', href: '/categories' },
         { label: 'Catalog Întrebări', href: '/questions' },
         { label: 'Propuneri Studenți', href: '/proposals' },

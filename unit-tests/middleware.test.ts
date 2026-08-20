@@ -29,7 +29,7 @@ vi.mock("next/server", async () => {
   };
 });
 
-const { middleware, normalizeAppRole } = await import("@/middleware");
+const { proxy, normalizeAppRole } = await import("@/proxy");
 
 describe("middleware", () => {
   beforeEach(() => {
@@ -58,7 +58,7 @@ describe("middleware", () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
 
     const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/login");
@@ -69,7 +69,7 @@ describe("middleware", () => {
     mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
 
     const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBeUndefined();
   });
@@ -79,7 +79,7 @@ describe("middleware", () => {
     mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
 
     const request = new NextRequest("http://localhost:3000/questions");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/dashboard");
@@ -90,7 +90,7 @@ describe("middleware", () => {
     mockMaybeSingle.mockResolvedValue({ data: { role: "Mentor" }, error: null });
 
     const request = new NextRequest("http://localhost:3000/questions");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBeUndefined();
   });
@@ -100,7 +100,7 @@ describe("middleware", () => {
     mockMaybeSingle.mockResolvedValue({ data: { role: null }, error: null });
 
     const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/login");
@@ -108,7 +108,7 @@ describe("middleware", () => {
 
   it("leaves public routes untouched", async () => {
     const request = new NextRequest("http://localhost:3000/");
-    const result = await middleware(request);
+    const result = await proxy(request);
 
     expect(result.redirected).toBeUndefined();
   });
@@ -116,7 +116,7 @@ describe("middleware", () => {
   it("executes the cookie update callback from the Supabase middleware config", async () => {
     const request = new NextRequest("http://localhost:3000/");
 
-    await middleware(request);
+    await proxy(request);
 
     const config = mockCreateServerClient.mock.calls.at(-1)?.[2];
     expect(config).toBeTruthy();
