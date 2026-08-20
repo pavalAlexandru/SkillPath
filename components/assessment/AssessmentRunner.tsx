@@ -85,7 +85,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                             result.passed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                         }`}
                     >
-            {result.passed ? 'PROMOVAT (Nivel validat)' : 'NECESITĂ REVIZUIRE'}
+            {result.passed ? 'PROMOVAT' : 'NECESITĂ REVIZUIRE'}
           </span>
                 </div>
                 <div className="flex justify-center gap-4">
@@ -103,15 +103,19 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
 
     return (
         <Card className="mx-auto max-w-3xl p-8 space-y-6">
+            {/* Header & Progres */}
             <div className="space-y-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
             {assessmentId === 'surprise' ? 'Test Mixt' : `Categorie #${assessmentId}`} • {currentQuestion.difficulty}
           </span>
-                    <span className="text-xs font-medium text-slate-500">
-            Întrebarea {currentIndex + 1} din {questions.length}
-          </span>
+
+                    {/* Titlu cerut explicit de testul E2E */}
+                    <h1 className="text-sm font-medium text-slate-700">
+                        Întrebarea {currentIndex + 1} din {questions.length}
+                    </h1>
                 </div>
+
                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-indigo-600 transition-all duration-300"
@@ -120,15 +124,19 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                 </div>
             </div>
 
+            {/* Textul Întrebării */}
             <p className="text-lg font-medium text-slate-900">{currentQuestion.questionText}</p>
 
+            {/* Opțiuni de răspuns */}
             <div className="space-y-3">
                 {currentQuestion.options.map((opt) => {
                     const isSelected = selectedOptionId === opt.id;
+                    const inputId = `option-${currentQuestion.id}-${opt.id}`;
+
                     return (
                         <label
                             key={opt.id}
-                            onClick={() => handleSelectOption(opt.id)}
+                            htmlFor={inputId}
                             className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${
                                 isSelected
                                     ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900 ring-1 ring-indigo-600'
@@ -136,23 +144,35 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                             }`}
                         >
                             <input
+                                id={inputId}
                                 type="radio"
-                                name={`q-${currentQuestion.id}`}
+                                name={`question-${currentQuestion.id}`}
                                 checked={isSelected}
                                 onChange={() => handleSelectOption(opt.id)}
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                             />
-                            <span className="text-sm">{opt.optionText}</span>
+                            <span className="text-sm select-none">{opt.optionText}</span>
                         </label>
                     );
                 })}
             </div>
 
+            {/* Butoane Navigare */}
             <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={handlePrev} disabled={currentIndex === 0}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                >
                     Înapoi
                 </Button>
-                <Button variant="primary" onClick={handleNext} disabled={!selectedOptionId}>
+                <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleNext}
+                    disabled={!selectedOptionId}
+                >
                     {isLastQuestion ? 'Finalizează Testul' : 'Următoarea Întrebare'}
                 </Button>
             </div>
