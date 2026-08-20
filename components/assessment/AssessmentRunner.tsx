@@ -2,10 +2,35 @@
 
 import React, { useState } from 'react';
 import { QuestionItem, AssessmentResult } from '@/types/assesments';
-import { calculateAssessmentScore, completeAssessmentInDb } from '@/server/supabase/assessmentService';
+import { completeAssessmentAction } from '@/server/actions/assessment';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+
+export function calculateAssessmentScore(
+    questions: QuestionItem[],
+    answers: Record<number, number>
+): AssessmentResult {
+    let score = 0;
+
+    questions.forEach((q) => {
+        const selectedOptionId = answers[q.id];
+        const correctOption = q.options.find((opt) => opt.isCorrect);
+        if (correctOption && selectedOptionId === correctOption.id) {
+            score += 1;
+        }
+    });
+
+    const total = questions.length || 1;
+    const percentage = Math.round((score / total) * 100);
+
+    return {
+        score,
+        totalQuestions: questions.length,
+        percentage,
+        passed: percentage >= 60,
+    };
+}
 
 interface AssessmentRunnerProps {
     assessmentId: string;
@@ -34,7 +59,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         } else {
             const calculated = calculateAssessmentScore(questions, answers);
             setResult(calculated);
-            await completeAssessmentInDb(assessmentId, calculated.percentage);
+            await completeAssessmentAction(assessmentId, calculated.percentage);
         }
     };
 
@@ -72,9 +97,12 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         );
     }
 
+    if (!currentQuestion) {
+        return null;
+    }
+
     return (
         <Card className="mx-auto max-w-3xl p-8 space-y-6">
-            {/* Header & Progres */}
             <div className="space-y-3 border-b border-slate-100 pb-4">
                 <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
@@ -92,10 +120,8 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                 </div>
             </div>
 
-            {/* Întrebare */}
             <p className="text-lg font-medium text-slate-900">{currentQuestion.questionText}</p>
 
-            {/* Opțiuni */}
             <div className="space-y-3">
                 {currentQuestion.options.map((opt) => {
                     const isSelected = selectedOptionId === opt.id;
@@ -122,7 +148,6 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                 })}
             </div>
 
-            {/* Butoane */}
             <div className="flex justify-between pt-4">
                 <Button variant="outline" onClick={handlePrev} disabled={currentIndex === 0}>
                     Înapoi

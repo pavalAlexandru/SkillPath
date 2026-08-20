@@ -1,37 +1,50 @@
 import { supabase } from "./client";
 
-export type AppRole = "student" | "mentor" | "admin";
+export type AppRole = "STUDENT" | "MENTOR";
+
+export function normalizeAppRole(value: unknown): AppRole | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "student") {
+    return "STUDENT";
+  }
+
+  if (normalized === "mentor") {
+    return "MENTOR";
+  }
+
+  return null;
+}
 
 export async function getSession() {
   const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data.session;
 }
 
 export async function getUser() {
   const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data.user;
 }
 
-export function getUserRole(
-  user: { user_metadata?: { role?: string } } | null,
-): AppRole | null {
-  const role = user?.user_metadata?.role;
+export async function getUserRole(userId: string): Promise<AppRole | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
 
-  if (role === "student" || role === "mentor" || role === "admin") {
-    return role;
+  if (error) {
+    console.error("Eroare la preluarea rolului:", error.message);
+    return null;
   }
 
-  return null;
+  return normalizeAppRole(data?.role);
 }
 
 export async function signInWithEmail(email: string, password: string) {
@@ -39,18 +52,11 @@ export async function signInWithEmail(email: string, password: string) {
     email,
     password,
   });
-
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
 }
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 }
