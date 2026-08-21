@@ -1,10 +1,31 @@
 import { Card } from '@/components/ui/Card';
 import { createClient } from '@/server/supabase/server';
 import ProposeForm from '@/components/student/ProposeForm';
+import { getAccessibleLevels, Level } from '@/lib/levels';
 
 export default async function ProposeQuestionPage() {
     const supabase = await createClient();
-    const { data: categories } = await supabase.from('categories').select('*').eq('is_active', true);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let studentLevel: Level = 'JUNIOR';
+    if (user) {
+        const { data: studentProfile } = await supabase
+            .from('student_profiles')
+            .select('current_level')
+            .eq('user_id', user.id)
+            .single();
+        if (studentProfile?.current_level) {
+            studentLevel = studentProfile.current_level as Level;
+        }
+    }
+
+    const accessibleLevels = getAccessibleLevels(studentLevel);
+
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .in('level', accessibleLevels);
 
     return (
         <Card className="mx-auto max-w-2xl p-8 space-y-6">

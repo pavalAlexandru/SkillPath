@@ -5,19 +5,29 @@ import { QuestionItem, AssessmentResult } from '@/types/assesments';
 import { completeAssessmentAction } from '@/server/actions/assessment';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import Link from 'next/link';
+import { AssessmentHeader } from './AssessmentHeader';
+import { AssessmentQuestionView } from './AssessmentQuestionView';
+import { AssessmentResultCard } from './AssessmentResultCard';
 
 export function calculateAssessmentScore(
     questions: QuestionItem[],
-    answers: Record<number, number>
+    answers: Record<number, number[]>
 ): AssessmentResult {
     let score = 0;
 
     questions.forEach((q) => {
-        const selectedOptionId = answers[q.id];
-        const correctOption = q.options.find((opt) => opt.isCorrect);
-        if (correctOption && selectedOptionId === correctOption.id) {
-            score += 1;
+        const selectedIds = answers[q.id] || [];
+        const correctIds = q.options.filter((opt) => opt.isCorrect).map((opt) => opt.id);
+
+        if (q.questionType === 'MULTIPLE') {
+            const isMatch =
+                selectedIds.length === correctIds.length &&
+                selectedIds.every((id) => correctIds.includes(id));
+            if (isMatch) score += 1;
+        } else {
+            if (selectedIds.length === 1 && correctIds.includes(selectedIds[0])) {
+                score += 1;
+            }
         }
     });
 
@@ -39,18 +49,28 @@ interface AssessmentRunnerProps {
 
 export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, number>>({});
+    const [answers, setAnswers] = useState<Record<number, number[]>>({});
     const [result, setResult] = useState<AssessmentResult | null>(null);
 
     const currentQuestion = questions[currentIndex];
-    const selectedOptionId = answers[currentQuestion?.id];
+    const selectedOptions = currentQuestion ? answers[currentQuestion.id] || [] : [];
     const isLastQuestion = currentIndex === questions.length - 1;
 
+    const correctCount = currentQuestion?.options.filter((opt) => opt.isCorrect).length || 1;
+    const isMultiple = currentQuestion?.questionType === 'MULTIPLE' || correctCount > 1;
+
     const handleSelectOption = (optionId: number) => {
-        setAnswers((prev) => ({
-            ...prev,
-            [currentQuestion.id]: optionId,
-        }));
+        setAnswers((prev) => {
+            const existing = prev[currentQuestion.id] || [];
+            if (isMultiple) {
+                const updated = existing.includes(optionId)
+                    ? existing.filter((id) => id !== optionId)
+                    : [...existing, optionId];
+                return { ...prev, [currentQuestion.id]: updated };
+            } else {
+                return { ...prev, [currentQuestion.id]: [optionId] };
+            }
+        });
     };
 
     const handleNext = async () => {
@@ -59,7 +79,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         } else {
             const calculated = calculateAssessmentScore(questions, answers);
             setResult(calculated);
-            await completeAssessmentAction(assessmentId, calculated.percentage);
+            await completeAssessmentAction(assessmentId, calculated.percentage, answers, questions);
         }
     };
 
@@ -70,94 +90,31 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
     };
 
     if (result) {
-        return (
-            <Card className="mx-auto max-w-2xl p-8 text-center space-y-6">
-                <h2 className="text-2xl font-bold text-slate-900">
-                    Rezultat Evaluare {assessmentId === 'surprise' ? 'Surpriză (Mixt)' : `#${assessmentId}`}
-                </h2>
-                <div className="rounded-xl bg-slate-50 p-6 border border-slate-100 space-y-2">
-                    <p className="text-4xl font-extrabold text-indigo-600">{result.percentage}%</p>
-                    <p className="text-sm text-slate-600">
-                        Ai răspuns corect la {result.score} din {result.totalQuestions} întrebări.
-                    </p>
-                    <span
-                        className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                            result.passed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                        }`}
-                    >
-            {result.passed ? 'PROMOVAT' : 'NECESITĂ REVIZUIRE'}
-          </span>
-                </div>
-                <div className="flex justify-center gap-4">
-                    <Link href="/dashboard">
-                        <Button variant="primary">Înapoi la Dashboard</Button>
-                    </Link>
-                </div>
-            </Card>
-        );
+        return <AssessmentResultCard assessmentId={assessmentId} result={result} />;
     }
 
-    if (!currentQuestion) {
-        return null;
-    }
+    if (!currentQuestion) return null;
 
     return (
         <Card className="mx-auto max-w-3xl p-8 space-y-6">
-            {/* Header & Progres */}
-            <div className="space-y-3 border-b border-slate-100 pb-4">
-                <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-            {assessmentId === 'surprise' ? 'Test Mixt' : `Categorie #${assessmentId}`} • {currentQuestion.difficulty}
-          </span>
+            <AssessmentHeader
+                assessmentId={assessmentId}
+                currentIndex={currentIndex}
+                totalQuestions={questions.length}
+                difficulty={currentQuestion.difficulty}
+                categoryName={currentQuestion.categoryName}
+                isMultiple={isMultiple}
+                selectedCount={selectedOptions.length}
+                correctCount={correctCount}
+            />
 
-                    {/* Titlu cerut explicit de testul E2E */}
-                    <h1 className="text-sm font-medium text-slate-700">
-                        Întrebarea {currentIndex + 1} din {questions.length}
-                    </h1>
-                </div>
+            <AssessmentQuestionView
+                question={currentQuestion}
+                selectedOptions={selectedOptions}
+                isMultiple={isMultiple}
+                onSelectOption={handleSelectOption}
+            />
 
-                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-indigo-600 transition-all duration-300"
-                        style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-                    />
-                </div>
-            </div>
-
-            {/* Textul Întrebării */}
-            <p className="text-lg font-medium text-slate-900">{currentQuestion.questionText}</p>
-
-            {/* Opțiuni de răspuns */}
-            <div className="space-y-3">
-                {currentQuestion.options.map((opt) => {
-                    const isSelected = selectedOptionId === opt.id;
-                    const inputId = `option-${currentQuestion.id}-${opt.id}`;
-
-                    return (
-                        <label
-                            key={opt.id}
-                            htmlFor={inputId}
-                            className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${
-                                isSelected
-                                    ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900 ring-1 ring-indigo-600'
-                                    : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50/50 text-slate-800'
-                            }`}
-                        >
-                            <input
-                                id={inputId}
-                                type="radio"
-                                name={`question-${currentQuestion.id}`}
-                                checked={isSelected}
-                                onChange={() => handleSelectOption(opt.id)}
-                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                            />
-                            <span className="text-sm select-none">{opt.optionText}</span>
-                        </label>
-                    );
-                })}
-            </div>
-
-            {/* Butoane Navigare */}
             <div className="flex justify-between pt-4">
                 <Button
                     type="button"
@@ -171,7 +128,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                     type="button"
                     variant="primary"
                     onClick={handleNext}
-                    disabled={!selectedOptionId}
+                    disabled={selectedOptions.length === 0}
                 >
                     {isLastQuestion ? 'Finalizează Testul' : 'Următoarea Întrebare'}
                 </Button>
