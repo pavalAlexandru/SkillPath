@@ -1,6 +1,7 @@
 import { createClient } from './server';
 import {
     QuestionItem,
+    QuestionOption,
     DifficultyLevel,
     QuestionType,
     StudentLevel,
@@ -37,6 +38,16 @@ interface RawQuestionQuery {
     options: RawQuestionOption[];
 }
 
+interface CategoryScoreRow {
+    category_id: number;
+    score_percentage: number | string;
+    assessments?: {
+        user_id: string;
+        status: string;
+        completed_at?: string;
+    } | null;
+}
+
 function shuffleArray<T>(array: T[]): T[] {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -46,7 +57,93 @@ function shuffleArray<T>(array: T[]): T[] {
     return shuffled;
 }
 
-// 1. Extrage cel mai recent scor per categorie pentru utilizatorul curent
+function calculateSingleQuestionScore(
+    selectedIds: number[],
+    options: QuestionOption[]
+): { score: number; isCorrect: boolean } {
+    const correctOptions = options.filter((o) => o.isCorrect);
+    const incorrectOptions = options.filter((o) => !o.isCorrect);
+
+    const N = correctOptions.length;
+    const M = incorrectOptions.length;
+
+    if (N === 0 || selectedIds.length === 0) {
+        return { score: 0, isCorrect: false };
+    }
+
+    let correctChosen = 0;
+    let incorrectChosen = 0;
+
+    selectedIds.forEach((id) => {
+        if (correctOptions.some((o) => o.id === id)) {
+            correctChosen++;
+        } else {
+            incorrectChosen++;
+        }
+    });
+
+    const penaltyPerWrong = M > 0 ? 1 / M : 0;
+    const rewardPerCorrect = 1 / N;
+
+    const rawScore = correctChosen * rewardPerCorrect - incorrectChosen * penaltyPerWrong;
+    const finalScore = Math.max(0, rawScore);
+
+    return {
+        score: finalScore,
+        isCorrect: finalScore === 1,
+    };
+}
+
+async function checkAndApplyLevelUp(userId: string, currentLevel: StudentLevel) {
+    if (currentLevel === 'SENIOR') return;
+
+    const supabase = await createClient();
+    const categories = await getCategoriesByLevel(currentLevel);
+
+    if (categories.length === 0) return;
+
+    const { data: scores, error } = await supabase
+        .from('assessment_category_scores')
+        .select(`
+            category_id,
+            score_percentage,
+            assessments!inner (
+                user_id,
+                status
+            )
+        `)
+        .eq('assessments.user_id', userId)
+        .eq('assessments.status', 'COMPLETED')
+        .in('category_id', categories.map((c) => c.id));
+
+    if (error || !scores || scores.length === 0) return;
+
+    const typedScores = scores as unknown as CategoryScoreRow[];
+    const maxScorePerCategory: Record<number, number> = {};
+
+    typedScores.forEach((row) => {
+        const catId = row.category_id;
+        const score = Number(row.score_percentage);
+        if (!maxScorePerCategory[catId] || score > maxScorePerCategory[catId]) {
+            maxScorePerCategory[catId] = score;
+        }
+    });
+
+    const allPassed90 = categories.every((cat) => (maxScorePerCategory[cat.id] || 0) >= 90);
+
+    if (allPassed90) {
+        const nextLevel: StudentLevel = currentLevel === 'JUNIOR' ? 'MIDDLE' : 'SENIOR';
+
+        await supabase
+            .from('student_profiles')
+            .update({
+                current_level: nextLevel,
+                updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', userId);
+    }
+}
+
 export async function getUserCategoryProgress(): Promise<Record<number, CategoryProgress>> {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -73,9 +170,10 @@ export async function getUserCategoryProgress(): Promise<Record<number, Category
         return {};
     }
 
+    const typedData = data as unknown as CategoryScoreRow[];
     const progressMap: Record<number, CategoryProgress> = {};
 
-    data.forEach((row: any) => {
+    typedData.forEach((row) => {
         const catId = row.category_id;
         if (!progressMap[catId]) {
             const score = Number(row.score_percentage);
@@ -91,7 +189,6 @@ export async function getUserCategoryProgress(): Promise<Record<number, Category
     return progressMap;
 }
 
-// 2. Salvează evaluarea completă în toate tabelele relaționale
 export async function saveCompletedAssessment(
     categoryIdOrMode: string | number,
     scorePercentage: number,
@@ -106,10 +203,11 @@ export async function saveCompletedAssessment(
         return null;
     }
 
+    const userLevel = await getCurrentStudentLevel();
     const isSurprise = categoryIdOrMode === 'surprise';
     const singleCatId = !isSurprise && !isNaN(Number(categoryIdOrMode)) ? Number(categoryIdOrMode) : null;
 
-    // 2.1 Inserare în tabela assessments
+    // 1. Inserare în tabela assessments
     const { data: assessment, error: aErr } = await supabase
         .from('assessments')
         .insert({
@@ -129,7 +227,7 @@ export async function saveCompletedAssessment(
 
     const newAssessmentId = assessment.id;
 
-    // 2.2 Inserare în assessment_categories
+    // 2. Inserare în assessment_categories
     const usedCategoryIds = isSurprise
         ? Array.from(new Set(questions.map((q) => q.categoryId)))
         : singleCatId ? [singleCatId] : [];
@@ -142,17 +240,11 @@ export async function saveCompletedAssessment(
         await supabase.from('assessment_categories').insert(catInserts);
     }
 
-    // 2.3 Inserare în assessment_questions & assessment_answers
+    // 3. Inserare în assessment_questions & assessment_answers
     for (let i = 0; i < questions.length; i++) {
         const q = questions[i];
         const selectedOptionIds = answers[q.id] || [];
-        const correctIds = q.options.filter((o) => o.isCorrect).map((o) => o.id);
-
-        const isCorrect =
-            q.questionType === 'MULTIPLE'
-                ? selectedOptionIds.length === correctIds.length &&
-                selectedOptionIds.every((id) => correctIds.includes(id))
-                : selectedOptionIds.length === 1 && correctIds.includes(selectedOptionIds[0]);
+        const { isCorrect } = calculateSingleQuestionScore(selectedOptionIds, q.options);
 
         const { data: aq, error: aqErr } = await supabase
             .from('assessment_questions')
@@ -175,7 +267,7 @@ export async function saveCompletedAssessment(
         }
     }
 
-    // 2.4 Inserare în assessment_category_scores
+    // 4. Inserare în assessment_category_scores
     if (!isSurprise && singleCatId) {
         await supabase.from('assessment_category_scores').insert({
             assessment_id: newAssessmentId,
@@ -186,21 +278,15 @@ export async function saveCompletedAssessment(
     } else if (isSurprise) {
         for (const catId of usedCategoryIds) {
             const catQuestions = questions.filter((q) => q.categoryId === catId);
-            let correctCount = 0;
+            let catPoints = 0;
 
             catQuestions.forEach((q) => {
                 const sel = answers[q.id] || [];
-                const cor = q.options.filter((o) => o.isCorrect).map((o) => o.id);
-                if (
-                    q.questionType === 'MULTIPLE'
-                        ? sel.length === cor.length && sel.every((id) => cor.includes(id))
-                        : sel.length === 1 && cor.includes(sel[0])
-                ) {
-                    correctCount++;
-                }
+                const { score } = calculateSingleQuestionScore(sel, q.options);
+                catPoints += score;
             });
 
-            const catPct = catQuestions.length > 0 ? Math.round((correctCount / catQuestions.length) * 100) : 0;
+            const catPct = catQuestions.length > 0 ? Math.round((catPoints / catQuestions.length) * 100) : 0;
             await supabase.from('assessment_category_scores').insert({
                 assessment_id: newAssessmentId,
                 category_id: catId,
@@ -210,10 +296,12 @@ export async function saveCompletedAssessment(
         }
     }
 
+    // 5. Declanșare automată verificare Level Up
+    await checkAndApplyLevelUp(user.id, userLevel);
+
     return newAssessmentId;
 }
 
-// 3. Extragere întrebări pentru test
 export async function getAssessmentQuestions(
     categoryIdOrMode?: string | number,
     limitCount: number = 10
