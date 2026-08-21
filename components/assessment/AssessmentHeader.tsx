@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 interface AssessmentHeaderProps {
@@ -7,8 +9,6 @@ interface AssessmentHeaderProps {
     difficulty: string;
     categoryName?: string;
     isMultiple: boolean;
-    selectedCount: number;
-    correctCount: number;
 }
 
 export function AssessmentHeader({
@@ -18,10 +18,8 @@ export function AssessmentHeader({
                                      difficulty,
                                      categoryName,
                                      isMultiple,
-                                     selectedCount,
-                                     correctCount,
                                  }: AssessmentHeaderProps) {
-    const isComplete = selectedCount === correctCount;
+    const progressPercentage = ((currentIndex + 1) / totalQuestions) * 100;
 
     return (
         <div className="space-y-3 border-b border-slate-100 pb-4">
@@ -40,21 +38,6 @@ export function AssessmentHeader({
                     <span className="rounded bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                         {isMultiple ? 'Selecție Multiplă' : 'Răspuns Unic'}
                     </span>
-
-                    <span
-                        className={`inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-xs font-semibold border transition-colors ${
-                            isComplete
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : selectedCount > correctCount
-                                    ? 'bg-rose-50 text-rose-700 border-rose-300'
-                                    : 'bg-amber-50 text-amber-800 border-amber-300'
-                        }`}
-                    >
-                        <span>Selectate:</span>
-                        <strong className="font-bold">
-                            {selectedCount} / {correctCount}
-                        </strong>
-                    </span>
                 </div>
 
                 <h1 className="text-sm font-medium text-slate-700">
@@ -65,7 +48,7 @@ export function AssessmentHeader({
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div
                     className="h-full bg-indigo-600 transition-all duration-300"
-                    style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
+                    style={{ width: `${progressPercentage}%` }}
                 />
             </div>
         </div>

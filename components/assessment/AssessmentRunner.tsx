@@ -13,29 +13,47 @@ export function calculateAssessmentScore(
     questions: QuestionItem[],
     answers: Record<number, number[]>
 ): AssessmentResult {
-    let score = 0;
+    let totalScore = 0;
 
     questions.forEach((q) => {
         const selectedIds = answers[q.id] || [];
-        const correctIds = q.options.filter((opt) => opt.isCorrect).map((opt) => opt.id);
+        const correctOptions = q.options.filter((opt) => opt.isCorrect);
+        const incorrectOptions = q.options.filter((opt) => !opt.isCorrect);
 
-        if (q.questionType === 'MULTIPLE') {
-            const isMatch =
-                selectedIds.length === correctIds.length &&
-                selectedIds.every((id) => correctIds.includes(id));
-            if (isMatch) score += 1;
-        } else {
-            if (selectedIds.length === 1 && correctIds.includes(selectedIds[0])) {
-                score += 1;
-            }
+        const N = correctOptions.length;
+        const M = incorrectOptions.length;
+
+        if (N === 0) return;
+
+        let questionScore = 0;
+
+        if (selectedIds.length > 0) {
+            let correctChosen = 0;
+            let incorrectChosen = 0;
+
+            selectedIds.forEach((id) => {
+                if (correctOptions.some((opt) => opt.id === id)) {
+                    correctChosen += 1;
+                } else {
+                    incorrectChosen += 1;
+                }
+            });
+
+            const penaltyPerWrong = M > 0 ? 1 / M : 0;
+            const rewardPerCorrect = 1 / N;
+
+            const rawScore = correctChosen * rewardPerCorrect - incorrectChosen * penaltyPerWrong;
+            questionScore = Math.max(0, rawScore);
         }
+
+        totalScore += questionScore;
     });
 
-    const total = questions.length || 1;
-    const percentage = Math.round((score / total) * 100);
+    const totalQuestions = questions.length || 1;
+    const percentage = Math.round((totalScore / totalQuestions) * 100);
 
     return {
-        score,
+        score: Number(totalScore.toFixed(2)),
         totalQuestions: questions.length,
         percentage,
         passed: percentage >= 60,
@@ -56,8 +74,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
     const selectedOptions = currentQuestion ? answers[currentQuestion.id] || [] : [];
     const isLastQuestion = currentIndex === questions.length - 1;
 
-    const correctCount = currentQuestion?.options.filter((opt) => opt.isCorrect).length || 1;
-    const isMultiple = currentQuestion?.questionType === 'MULTIPLE' || correctCount > 1;
+    const isMultiple = currentQuestion?.questionType === 'MULTIPLE';
 
     const handleSelectOption = (optionId: number) => {
         setAnswers((prev) => {
@@ -104,8 +121,6 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                 difficulty={currentQuestion.difficulty}
                 categoryName={currentQuestion.categoryName}
                 isMultiple={isMultiple}
-                selectedCount={selectedOptions.length}
-                correctCount={correctCount}
             />
 
             <AssessmentQuestionView

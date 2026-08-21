@@ -25,7 +25,7 @@ export default async function AssessmentPage() {
             {/* Banner Surprise Mode */}
             <SurpriseModeBanner />
 
-            {/* Grila de Categorii Active cu Date Reale */}
+            {/* Grila de Categorii Active */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {categories.map((cat) => (
                     <CategoryCard
@@ -38,20 +38,38 @@ export default async function AssessmentPage() {
                     />
                 ))}
 
-                {/* Carduri Blocate dacă studentul e încă Junior */}
+                {/* Carduri blocate când ești JUNIOR -> spre MIDDLE */}
                 {userLevel === 'JUNIOR' && (
                     <>
                         <LockedCategoryCard
-                            title="Design Patterns"
-                            description="Creational, structural, and behavioral patterns for solving common design problems."
+                            title="SOLID & Design Patterns"
+                            description="Principii avansate de design orientat pe obiecte și șabloane arhitecturale."
                             levelBadge="MIDDLE"
                             unlockRequirement="Unlocks at 90% on all Junior categories"
                         />
                         <LockedCategoryCard
-                            title="API & REST"
-                            description="Designing and consuming RESTful web services, authentication, and stateless architecture."
+                            title="Web Development & REST APIs"
+                            description="Arhitectura web, protocoale HTTP, servicii RESTful și securitate web."
                             levelBadge="MIDDLE"
                             unlockRequirement="Unlocks at 90% on all Junior categories"
+                        />
+                    </>
+                )}
+
+                {/* Carduri blocate când ești MIDDLE -> spre SENIOR */}
+                {userLevel === 'MIDDLE' && (
+                    <>
+                        <LockedCategoryCard
+                            title="Distributed Systems & Microservices"
+                            description="Arhitecturi distribuite, consistență eventuală, event-driven systems și scalabilitate."
+                            levelBadge="SENIOR"
+                            unlockRequirement="Unlocks at 90% on all Middle categories"
+                        />
+                        <LockedCategoryCard
+                            title="High Performance & Database Tuning"
+                            description="Optimizare query-uri, mecanisme avansate de indexare, caching distribuit și concurență."
+                            levelBadge="SENIOR"
+                            unlockRequirement="Unlocks at 90% on all Middle categories"
                         />
                     </>
                 )}
