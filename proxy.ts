@@ -12,13 +12,13 @@ export function normalizeAppRole(value: unknown): "STUDENT" | "MENTOR" | null {
   return null;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Excepție pentru testele automate E2E
   if (
       process.env.NODE_ENV === "test" ||
       request.headers.get("x-e2e-test") === "true"
   ) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: request.headers } });
   }
 
   let response = NextResponse.next({ request: { headers: request.headers } });
@@ -53,10 +53,12 @@ export async function middleware(request: NextRequest) {
     "/propose",
     "/assessment",
   ].some((p) => path.startsWith(p));
-  const isMentorPath = ["/questions", "/proposals", "/users"].some((p) =>
-      path.startsWith(p),
-  );
-
+    const isMentorPath = [
+        "/overview",
+        "/questions",
+        "/proposals",
+        "/categories",
+    ].some((p) => path.startsWith(p));
   const isProtectedPath = isStudentPath || isMentorPath;
 
   if (!user && isProtectedPath) {
