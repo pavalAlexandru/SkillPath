@@ -18,13 +18,13 @@ vi.mock("next/server", async () => {
     ...actual,
     NextResponse: {
       ...actual.NextResponse,
-      next: vi.fn((options: any = {}) => ({
+      next: vi.fn((options?: { request?: unknown }) => ({
         request: options?.request,
         cookies: {
           set: mockSetAll,
         },
       })),
-      redirect: vi.fn((url) => ({ url, redirected: true })),
+      redirect: vi.fn((url: string | URL) => ({ url, redirected: true })),
     },
   };
 });
@@ -36,6 +36,7 @@ describe("middleware", () => {
 
   beforeEach(() => {
     originalEnv = process.env.NODE_ENV;
+    // @ts-expect-error - overriding for test
     process.env.NODE_ENV = "development";
     vi.clearAllMocks();
     mockGetAll.mockReturnValue([]);
@@ -44,7 +45,7 @@ describe("middleware", () => {
       select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: mockMaybeSingle })) })),
     });
     mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
-    mockCreateServerClient.mockImplementation((url, key, options) => ({
+    mockCreateServerClient.mockImplementation((url: string, key: string, options: unknown) => ({
       auth: { getUser: mockGetUser },
       from: mockFrom,
       options,
@@ -52,6 +53,7 @@ describe("middleware", () => {
   });
 
   afterEach(() => {
+    // @ts-expect-error - overriding for test
     process.env.NODE_ENV = originalEnv;
   });
 
