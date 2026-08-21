@@ -14,6 +14,13 @@ export function nextLevel(level: Level): Level | null {
     if (level === 'MIDDLE') return 'SENIOR';
     return null; // SENIOR e ultimul nivel
 }
+
+export function getAccessibleLevels(level: Level): Level[] {
+    if (level === 'JUNIOR') return ['JUNIOR'];
+    if (level === 'MIDDLE') return ['JUNIOR', 'MIDDLE'];
+    if (level === 'SENIOR') return ['JUNIOR', 'MIDDLE', 'SENIOR'];
+    return ['JUNIOR'];
+}
 //aici tb modificat daca adaugam un level nou
 
 
