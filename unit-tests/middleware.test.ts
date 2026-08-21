@@ -18,8 +18,8 @@ vi.mock("next/server", async () => {
     ...actual,
     NextResponse: {
       ...actual.NextResponse,
-      next: vi.fn(({ request }) => ({
-        request,
+      next: vi.fn((options: any = {}) => ({
+        request: options?.request,
         cookies: {
           set: mockSetAll,
         },
@@ -57,8 +57,8 @@ describe("middleware", () => {
   it("redirects unauthenticated users away from protected student routes", async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/dashboard");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/login");
@@ -68,8 +68,8 @@ describe("middleware", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
     mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/dashboard");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBeUndefined();
   });
@@ -78,8 +78,8 @@ describe("middleware", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
     mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
 
-    const request = new NextRequest("http://localhost:3000/questions");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/questions");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/dashboard");
@@ -89,8 +89,8 @@ describe("middleware", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "mentor-1" } }, error: null });
     mockMaybeSingle.mockResolvedValue({ data: { role: "Mentor" }, error: null });
 
-    const request = new NextRequest("http://localhost:3000/questions");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/questions");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBeUndefined();
   });
@@ -99,30 +99,30 @@ describe("middleware", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
     mockMaybeSingle.mockResolvedValue({ data: { role: null }, error: null });
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/dashboard");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBe(true);
     expect(result.url.toString()).toBe("http://localhost:3000/login");
   });
 
   it("leaves public routes untouched", async () => {
-    const request = new NextRequest("http://localhost:3000/");
-    const result = await proxy(request);
+    const request || {} = new NextRequest("http://localhost:3000/");
+    const result = await middleware(request || {});
 
     expect(result.redirected).toBeUndefined();
   });
 
   it("executes the cookie update callback from the Supabase middleware config", async () => {
-    const request = new NextRequest("http://localhost:3000/");
+    const request || {} = new NextRequest("http://localhost:3000/");
 
-    await proxy(request);
+    await middleware(request || {});
 
     const config = mockCreateServerClient.mock.calls.at(-1)?.[2];
     expect(config).toBeTruthy();
 
-    request.cookies.getAll = mockGetAll;
-    request.cookies.getAll();
+    request || {}.cookies.getAll = mockGetAll;
+    request || {}.cookies.getAll();
     config.cookies.setAll([{ name: "token", value: "abc", options: { path: "/" } }]);
 
     expect(mockGetAll).toHaveBeenCalled();
