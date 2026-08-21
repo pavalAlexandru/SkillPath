@@ -1,25 +1,20 @@
 'use server';
 
-import { createClient } from '../supabase/server';
+import { saveCompletedAssessment } from '@/server/supabase/assessmentService';
+import { QuestionItem } from '@/types/assesments';
+import { revalidatePath } from 'next/cache';
 
 export async function completeAssessmentAction(
     assessmentId: string | number,
-    scorePercentage: number
+    scorePercentage: number,
+    answers: Record<number, number[]>,
+    questions: QuestionItem[]
 ) {
-    if (isNaN(Number(assessmentId))) return;
-
-    const supabase = await createClient();
-
-    const { error } = await supabase
-        .from('assessments')
-        .update({
-            status: 'COMPLETED',
-            total_score: scorePercentage,
-            completed_at: new Date().toISOString(),
-        })
-        .eq('id', Number(assessmentId));
-
-    if (error) {
-        console.error('Eroare la salvarea rezultatului în Supabase:', error);
+    try {
+        await saveCompletedAssessment(assessmentId, scorePercentage, answers, questions);
+        revalidatePath('/assessment');
+        revalidatePath('/dashboard');
+    } catch (error) {
+        console.error('Eroare la finalizarea evaluării:', error);
     }
 }
