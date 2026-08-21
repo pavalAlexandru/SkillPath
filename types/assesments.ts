@@ -4,11 +4,12 @@ export type QuestionRow = Tables<'questions'>;
 export type OptionRow = Tables<'question_options'>;
 export type CategoryRow = Tables<'categories'>;
 
-// 2. Tipurile de bază derivate
+// 1. Tipurile de Nivel conform bazei de date
+export type StudentLevel = 'JUNIOR' | 'MIDDLE' | 'SENIOR';
 export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionType = 'SINGLE' | 'MULTIPLE';
 
-// 3. Opțiunea adaptată pentru UI
+// 2. Opțiunea adaptată pentru UI
 export interface QuestionOption {
     id: OptionRow['id'];
     questionId: OptionRow['question_id'];
@@ -16,17 +17,18 @@ export interface QuestionOption {
     isCorrect?: OptionRow['is_correct'];
 }
 
-// 4. Întrebarea completă (cu opțiunile imbricate)
+// 3. Întrebarea completă (cu opțiunile imbricate și denumirea categoriei)
 export interface QuestionItem {
     id: QuestionRow['id'];
     categoryId: QuestionRow['category_id'];
+    categoryName?: string;
     questionText: QuestionRow['question_text'];
     difficulty: QuestionRow['difficulty'];
     questionType: QuestionRow['question_type'];
     options: QuestionOption[];
 }
 
-// 5. Rezultatul final calculat după test
+// 4. Rezultatul final calculat după evaluare
 export interface AssessmentResult {
     score: number;
     totalQuestions: number;
