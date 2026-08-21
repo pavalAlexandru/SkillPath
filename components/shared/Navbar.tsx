@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LogoutButton } from './LogoutButton';
 
 export interface NavItem {
     label: string;
@@ -42,6 +43,7 @@ export function Navbar({
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-slate-600">{userEmail}</span>
+                    <LogoutButton />
                 </div>
             </div>
         </header>
