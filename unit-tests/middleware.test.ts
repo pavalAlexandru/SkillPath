@@ -29,7 +29,7 @@ vi.mock("next/server", async () => {
   };
 });
 
-const { middleware, normalizeAppRole } = await import("@/middleware");
+const { proxy, normalizeAppRole } = await import("@/proxy");
 
 describe("middleware", () => {
   beforeEach(() => {
