@@ -74,7 +74,10 @@ export async function signUpWithEmail(
     password,
   });
   if (error) throw error;
-  
+  if (data.user?.identities && data.user.identities.length === 0) {
+    throw new Error("Un cont cu acest email există deja.");
+  }
+
   if (data.user) {
     const { error: profileError } = await supabase.from("profiles").insert({
       id: data.user.id,
@@ -85,6 +88,9 @@ export async function signUpWithEmail(
     });
     
     if (profileError) {
+      if (profileError.code === '23505') {
+        throw new Error("Un cont cu acest email există deja.");
+      }
       console.error("Profile creation error", profileError);
       throw profileError;
     }
