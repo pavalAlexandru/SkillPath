@@ -52,36 +52,36 @@ export default async function MentorQuestionsPage() {
             <Card className="overflow-hidden p-0">
                 <table className="w-full text-left text-sm text-slate-600">
                     <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
-                        <tr>
-                            <th className="px-6 py-3">Enunț</th>
-                            <th className="px-6 py-3">Categorie</th>
-                            <th className="px-6 py-3">Dificultate</th>
-                            <th className="px-6 py-3">Variante</th>
-                            <th className="px-6 py-3 text-right">Acțiuni</th>
-                        </tr>
+                    <tr>
+                        <th className="px-6 py-3">Enunț</th>
+                        <th className="px-6 py-3">Categorie</th>
+                        <th className="px-6 py-3">Dificultate</th>
+                        <th className="px-6 py-3">Variante</th>
+                        <th className="px-6 py-3 text-right">Acțiuni</th>
+                    </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {questions?.map((q) => (
-                            <tr key={q.id} className="hover:bg-slate-50">
-                                <td className="px-6 py-4 font-medium text-slate-900">
-                                    {q.question_text}
-                                </td>
-                                <td className="px-6 py-4">{q.categories?.name ?? '—'}</td>
-                                <td className="px-6 py-4">
+                    {questions?.map((q) => (
+                        <tr key={q.id} className="hover:bg-slate-50">
+                            <td className="px-6 py-4 font-medium text-slate-900">
+                                {q.question_text}
+                            </td>
+                            <td className="px-6 py-4">{q.categories?.name ?? '—'}</td>
+                            <td className="px-6 py-4">
                                     <span
                                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${DIFICULTATE_CULOARE[q.difficulty]}`}
                                     >
                                         {DIFICULTATE_LABEL[q.difficulty]}
                                     </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    {q.question_options.length} ({q.question_options.filter((o) => o.is_correct).length} corecte)
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <button className="text-indigo-600 hover:underline">Editează</button>
-                                </td>
-                            </tr>
-                        ))}
+                            </td>
+                            <td className="px-6 py-4">
+                                {q.question_options.length} ({q.question_options.filter((o) => o.is_correct).length} corecte)
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                                <button className="text-indigo-600 hover:underline">Editează</button>
+                            </td>
+                        </tr>
+                    ))}
                     </tbody>
                 </table>
 
