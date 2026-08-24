@@ -57,3 +57,20 @@ export async function updateCategory(formData: FormData) {
     revalidatePath('/categories');
     redirect('/categories');
 }
+
+export async function toggleCategoryActive(formData: FormData) {
+    const id = Number(formData.get('id'));
+    const isActive = formData.get('is_active') === 'true';
+
+    const { error } = await supabase
+        .from('categories')
+        .update({ is_active: !isActive })
+        .eq('id', id);
+
+    if (error) {
+        console.log('EROARE TOGGLE CATEGORIE:', error.message);
+        return;
+    }
+
+    revalidatePath('/categories');
+}
