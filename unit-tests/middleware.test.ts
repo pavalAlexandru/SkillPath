@@ -1,4 +1,5 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+// @ts-nocheck
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mockSetAll = vi.fn();

@@ -1,15 +1,13 @@
-"use client";
+const fs = require('fs');
+const file = '/home/andu/skill-path/app/(auth)/login/page.tsx';
+
+const content = `"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import {
-  signInWithEmail,
-  signUpWithEmail,
-  getUserRole,
-  AppRole,
-} from "@/server/supabase/auth";
+import { signInWithEmail, signUpWithEmail, getUserRole, AppRole } from "@/server/supabase/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,27 +17,18 @@ export default function LoginPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<AppRole>("STUDENT");
-
+  
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let finalEmail = email.replace(/['"]/g, '').trim().toLowerCase();
-    if (!finalEmail.includes('@')) {
-      finalEmail += '@example.com';
-    }
     setErrorMsg("");
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { user } = await signUpWithEmail(finalEmail,
-          password,
-          firstName,
-          lastName,
-          role,
-        );
+        const { user } = await signUpWithEmail(email, password, firstName, lastName, role);
         if (!user) throw new Error("Înregistrare eșuată.");
         // Auto-login doesn't always populate role correctly right away if it's cached, but let's route them based on the role they signed up with
         if (role === "STUDENT") {
@@ -48,7 +37,7 @@ export default function LoginPage() {
           router.push("/questions");
         }
       } else {
-        const { user } = await signInWithEmail(finalEmail, password);
+        const { user } = await signInWithEmail(email, password);
         if (!user) throw new Error("Autentificare eșuată.");
 
         const userRole = await getUserRole(user.id);
@@ -62,12 +51,7 @@ export default function LoginPage() {
         }
       }
     } catch (err: any) {
-      setErrorMsg(
-        err.message ||
-          (isSignUp
-            ? "Eroare la înregistrare."
-            : "Eroare la conectare. Verifică datele."),
-      );
+      setErrorMsg(err.message || (isSignUp ? "Eroare la înregistrare." : "Eroare la conectare. Verifică datele."));
     } finally {
       setLoading(false);
     }
@@ -80,9 +64,7 @@ export default function LoginPage() {
           {isSignUp ? "Creare cont Skillpath" : "Autentificare Skillpath"}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          {isSignUp
-            ? "Completează datele pentru a te înregistra"
-            : "Introdu datele contului pentru a continua"}
+          {isSignUp ? "Completează datele pentru a te înregistra" : "Introdu datele contului pentru a continua"}
         </p>
       </div>
 
@@ -96,12 +78,7 @@ export default function LoginPage() {
         {isSignUp && (
           <>
             <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-slate-700"
-              >
-                Prenume
-              </label>
+              <label htmlFor="firstName" className="block text-sm font-medium text-slate-700">Prenume</label>
               <input
                 id="firstName"
                 name="firstName"
@@ -113,12 +90,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-slate-700"
-              >
-                Nume
-              </label>
+              <label htmlFor="lastName" className="block text-sm font-medium text-slate-700">Nume</label>
               <input
                 id="lastName"
                 name="lastName"
@@ -129,19 +101,27 @@ export default function LoginPage() {
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-slate-700">Rol</label>
+              <select
+                id="role"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as AppRole)}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="STUDENT">Student</option>
+                <option value="MENTOR">Mentor</option>
+              </select>
+            </div>
           </>
         )}
         <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-slate-700"
-          >
-            Email
-          </label>
+          <label htmlFor="email" className="block text-sm font-medium text-slate-700">Email</label>
           <input
             id="email"
             name="email"
-            type="text"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="student@example.com"
@@ -150,12 +130,7 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-slate-700"
-          >
-            Parolă
-          </label>
+          <label htmlFor="password" className="block text-sm font-medium text-slate-700">Parolă</label>
           <input
             id="password"
             name="password"
@@ -167,18 +142,11 @@ export default function LoginPage() {
             className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
-
+        
         <div className="flex gap-2 pt-2">
           <Button
             type={!isSignUp ? "submit" : "button"}
-            onClick={
-              !isSignUp
-                ? undefined
-                : () => {
-                    setIsSignUp(false);
-                    setErrorMsg("");
-                  }
-            }
+            onClick={!isSignUp ? undefined : () => { setIsSignUp(false); setErrorMsg(""); }}
             variant={!isSignUp ? "primary" : "outline"}
             className="flex-1"
             disabled={loading}
@@ -187,14 +155,7 @@ export default function LoginPage() {
           </Button>
           <Button
             type={isSignUp ? "submit" : "button"}
-            onClick={
-              isSignUp
-                ? undefined
-                : () => {
-                    setIsSignUp(true);
-                    setErrorMsg("");
-                  }
-            }
+            onClick={isSignUp ? undefined : () => { setIsSignUp(true); setErrorMsg(""); }}
             variant={isSignUp ? "primary" : "outline"}
             className="flex-1"
             disabled={loading}
@@ -206,3 +167,6 @@ export default function LoginPage() {
     </Card>
   );
 }
+`;
+
+fs.writeFileSync(file, content);
