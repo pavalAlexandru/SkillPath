@@ -103,6 +103,14 @@ export default async function StudentsPage({
 
     const areFiltre = search !== '' || level !== '';
 
+    const studentiActivi = listaOrdonata.filter((s) => s.is_active).length;
+    const scorMediuGeneral = (evaluariFinalizate ?? []).length
+        ? Math.round(
+              (evaluariFinalizate ?? []).reduce((acc, a) => acc + (a.total_score ?? 0), 0) /
+                  (evaluariFinalizate ?? []).length,
+          )
+        : null;
+
     return (
         <div className="space-y-6">
             <div>
@@ -110,6 +118,23 @@ export default async function StudentsPage({
                 <p className="text-sm text-slate-500">
                     Gestionează conturile studenților și nivelul lor de acces.
                 </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <Card>
+                    <p className="text-sm font-medium text-slate-500">Total studenți</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-900">{listaOrdonata.length}</p>
+                </Card>
+                <Card>
+                    <p className="text-sm font-medium text-slate-500">Studenți activi</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-900">{studentiActivi}</p>
+                </Card>
+                <Card>
+                    <p className="text-sm font-medium text-slate-500">Scor mediu general</p>
+                    <p className="mt-1 text-3xl font-bold text-slate-900">
+                        {scorMediuGeneral !== null ? `${scorMediuGeneral}%` : '—'}
+                    </p>
+                </Card>
             </div>
 
             <Card className="bg-slate-50/60">
