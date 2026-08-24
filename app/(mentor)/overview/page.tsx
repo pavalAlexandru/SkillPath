@@ -59,6 +59,62 @@ export default async function  MentorOverviewPage(){
     const numePerId = new Map(
         (profileRecente ?? []).map((p) => [p.id, `${p.first_name} ${p.last_name}`]),
     );
+
+    // 1. Câți studenți activi sunt la fiecare nivel.
+    const { data: studentiPeNivel } = await supabase
+        .from('profiles')
+        .select('id, student_profiles(current_level)')
+        .eq('role', 'STUDENT')
+        .eq('is_active', true);
+
+    const numarPeNivel: Record<string, number> = { JUNIOR: 0, MIDDLE: 0, SENIOR: 0 };
+    for (const s of studentiPeNivel ?? []) {
+        const nivel = (s.student_profiles as unknown as { current_level: string } | null)?.current_level;
+        if (nivel && nivel in numarPeNivel) {
+            numarPeNivel[nivel] += 1;
+        }
+    }
+    const totalStudentiNivel = numarPeNivel.JUNIOR + numarPeNivel.MIDDLE + numarPeNivel.SENIOR;
+
+    // 2. Câte evaluări s-au finalizat în fiecare din ultimele 7 zile.
+    const azi = new Date();
+    const sapteZileInUrma = new Date(azi);
+    sapteZileInUrma.setDate(sapteZileInUrma.getDate() - 6);
+    sapteZileInUrma.setHours(0, 0, 0, 0);
+
+    const { data: evaluariSaptamana } = await supabase
+        .from('assessments')
+        .select('completed_at')
+        .eq('status', 'COMPLETED')
+        .gte('completed_at', sapteZileInUrma.toISOString());
+
+    const zileSaptamana: { eticheta: string; numar: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+        const zi = new Date(azi);
+        zi.setDate(zi.getDate() - i);
+        const cheieZi = zi.toISOString().slice(0, 10);
+        const numar = (evaluariSaptamana ?? []).filter(
+            (a) => a.completed_at?.slice(0, 10) === cheieZi,
+        ).length;
+        zileSaptamana.push({ eticheta: zi.toLocaleDateString('ro-RO', { weekday: 'short' }), numar });
+    }
+    const maxZi = Math.max(1, ...zileSaptamana.map((z) => z.numar));
+
+    // 3. Distribuția scorurilor pe trei categorii, pe toate evaluările finalizate.
+    const { data: toateScorurile } = await supabase
+        .from('assessments')
+        .select('total_score')
+        .eq('status', 'COMPLETED');
+
+    const bucketScoruri = { slab: 0, mediu: 0, bun: 0 };
+    for (const a of toateScorurile ?? []) {
+        const scor = a.total_score ?? 0;
+        if (scor < 50) bucketScoruri.slab += 1;
+        else if (scor < 75) bucketScoruri.mediu += 1;
+        else bucketScoruri.bun += 1;
+    }
+    const totalScoruri = bucketScoruri.slab + bucketScoruri.mediu + bucketScoruri.bun;
+
     return (
         <div className="space-y-6">
             <div>
@@ -207,6 +263,74 @@ export default async function  MentorOverviewPage(){
                     </p>
                 )}
             </Card>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <Card>
+                    <h2 className="mb-4 text-base font-bold text-slate-900">Distribuție pe nivel</h2>
+                    {totalStudentiNivel > 0 ? (
+                        <div className="space-y-3">
+                            <BaraStatistica eticheta="JUNIOR" valoare={numarPeNivel.JUNIOR} total={totalStudentiNivel} culoare="bg-emerald-500" />
+                            <BaraStatistica eticheta="MIDDLE" valoare={numarPeNivel.MIDDLE} total={totalStudentiNivel} culoare="bg-amber-500" />
+                            <BaraStatistica eticheta="SENIOR" valoare={numarPeNivel.SENIOR} total={totalStudentiNivel} culoare="bg-rose-500" />
+                        </div>
+                    ) : (
+                        <p className="py-4 text-center text-sm text-slate-400">
+                            Nu există încă studenți activi.
+                        </p>
+                    )}
+                </Card>
+
+                <Card>
+                    <h2 className="mb-4 text-base font-bold text-slate-900">Distribuție scoruri</h2>
+                    {totalScoruri > 0 ? (
+                        <div className="space-y-3">
+                            <BaraStatistica eticheta="Sub 50%" valoare={bucketScoruri.slab} total={totalScoruri} culoare="bg-rose-500" />
+                            <BaraStatistica eticheta="50% – 75%" valoare={bucketScoruri.mediu} total={totalScoruri} culoare="bg-amber-500" />
+                            <BaraStatistica eticheta="Peste 75%" valoare={bucketScoruri.bun} total={totalScoruri} culoare="bg-emerald-500" />
+                        </div>
+                    ) : (
+                        <p className="py-4 text-center text-sm text-slate-400">
+                            Nu există încă evaluări finalizate.
+                        </p>
+                    )}
+                </Card>
+            </div>
+
+            <Card>
+                <h2 className="mb-4 text-base font-bold text-slate-900">Activitate — ultimele 7 zile</h2>
+                <div className="flex h-32 items-end justify-between gap-2">
+                    {zileSaptamana.map((zi, i) => (
+                        <div
+                            key={i}
+                            title={`${zi.numar} ${zi.numar === 1 ? 'evaluare' : 'evaluări'}`}
+                            className="w-full rounded-t bg-indigo-500"
+                            style={{ height: `${Math.max(4, (zi.numar / maxZi) * 100)}%` }}
+                        />
+                    ))}
+                </div>
+                <div className="mt-2 flex justify-between gap-2">
+                    {zileSaptamana.map((zi, i) => (
+                        <span key={i} className="flex-1 text-center text-[10px] uppercase text-slate-500">
+                            {zi.eticheta}
+                        </span>
+                    ))}
+                </div>
+            </Card>
+        </div>
+    );
+}
+
+function BaraStatistica(props: { eticheta: string; valoare: number; total: number; culoare: string }) {
+    const procent = props.total > 0 ? (props.valoare / props.total) * 100 : 0;
+    return (
+        <div>
+            <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="font-medium text-slate-700">{props.eticheta}</span>
+                <span className="text-slate-500">{props.valoare}</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-100">
+                <div className={`h-2 rounded-full ${props.culoare}`} style={{ width: `${procent}%` }} />
+            </div>
         </div>
     );
 }
