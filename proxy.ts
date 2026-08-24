@@ -58,6 +58,7 @@ export async function proxy(request: NextRequest) {
     "/questions",
     "/proposals",
     "/categories",
+    "/students",
   ].some((p) => path.startsWith(p));
 
   const isProtectedPath = isStudentPath || isMentorPath;
