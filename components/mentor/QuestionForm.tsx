@@ -2,16 +2,39 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { createQuestion } from '@/server/actions/questions';
+import { createQuestion, updateQuestion } from '@/server/actions/questions';
 
 type Optiune = { text: string; correct: boolean };
 
-export function QuestionForm({ categories }: { categories: { id: number; name: string }[] }) {
-    const [tip, setTip] = useState<'SINGLE' | 'MULTIPLE'>('SINGLE');
-    const [optiuni, setOptiuni] = useState<Optiune[]>([
-        { text: '', correct: false },
-        { text: '', correct: false },
-    ]);
+type ExistingQuestion = {
+    id: number;
+    question_text: string;
+    category_id: number;
+    difficulty: string;
+    question_type: string;
+    question_options: { option_text: string; is_correct: boolean }[];
+};
+
+export function QuestionForm({
+    categories,
+    question,
+}: {
+    categories: { id: number; name: string }[];
+    question?: ExistingQuestion;
+}) {
+    const esteEditare = question !== undefined;
+
+    const [tip, setTip] = useState<'SINGLE' | 'MULTIPLE'>(
+        (question?.question_type as 'SINGLE' | 'MULTIPLE') ?? 'SINGLE',
+    );
+    const [optiuni, setOptiuni] = useState<Optiune[]>(
+        question
+            ? question.question_options.map((o) => ({ text: o.option_text, correct: o.is_correct }))
+            : [
+                  { text: '', correct: false },
+                  { text: '', correct: false },
+              ],
+    );
 
     function adaugaOptiune() {
         setOptiuni([...optiuni, { text: '', correct: false }]);
@@ -34,7 +57,9 @@ export function QuestionForm({ categories }: { categories: { id: number; name: s
     }
 
     return (
-        <form action={createQuestion} className="space-y-4">
+        <form action={esteEditare ? updateQuestion : createQuestion} className="space-y-4">
+            {esteEditare && <input type="hidden" name="question_id" value={question.id} />}
+
             <div>
                 <label className="block text-sm font-medium text-slate-700">Enunț</label>
                 <textarea
@@ -42,6 +67,7 @@ export function QuestionForm({ categories }: { categories: { id: number; name: s
                     required
                     minLength={5}
                     rows={2}
+                    defaultValue={question?.question_text}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 />
             </div>
@@ -52,6 +78,7 @@ export function QuestionForm({ categories }: { categories: { id: number; name: s
                     <select
                         name="category_id"
                         required
+                        defaultValue={question?.category_id}
                         className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                     >
                         {categories.map((c) => (
@@ -64,6 +91,7 @@ export function QuestionForm({ categories }: { categories: { id: number; name: s
                     <label className="block text-sm font-medium text-slate-700">Dificultate</label>
                     <select
                         name="difficulty"
+                        defaultValue={question?.difficulty ?? 'EASY'}
                         className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                     >
                         <option value="EASY">Ușor</option>
@@ -129,7 +157,16 @@ export function QuestionForm({ categories }: { categories: { id: number; name: s
 
             <input type="hidden" name="options_json" value={JSON.stringify(optiuni)} />
 
-            <Button type="submit" variant="primary">Salvează întrebarea</Button>
+            <div className="flex items-center gap-3">
+                <Button type="submit" variant="primary">
+                    {esteEditare ? 'Salvează modificările' : 'Salvează întrebarea'}
+                </Button>
+                {esteEditare && (
+                    <a href="/questions" className="text-sm text-slate-500 hover:underline">
+                        Anulează
+                    </a>
+                )}
+            </div>
         </form>
     );
 }
