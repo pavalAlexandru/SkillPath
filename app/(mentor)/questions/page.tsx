@@ -28,12 +28,24 @@ const ORDINE_DIFICULTATE: Record<string, number> = {
 export default async function MentorQuestionsPage({
     searchParams,
 }: {
-    searchParams: Promise<{ search?: string; sort?: string; edit?: string }>;
+    searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string }>;
 }) {
     const params = await searchParams;
     const search = params.search ?? '';
+    const category = params.category ?? '';
+    const difficulty = params.difficulty ?? '';
     const sort = params.sort ?? '';
     const editId = params.edit ? Number(params.edit) : null;
+
+    // Construiește linkul de sortare, păstrând filtrele active de căutare/categorie/dificultate.
+    function sortLink(field: string) {
+        const qs = new URLSearchParams();
+        if (search) qs.set('search', search);
+        if (category) qs.set('category', category);
+        if (difficulty) qs.set('difficulty', difficulty);
+        qs.set('sort', field);
+        return `/questions?${qs.toString()}`;
+    }
 
     const supabase = await createClient();
 
@@ -44,6 +56,12 @@ export default async function MentorQuestionsPage({
 
     if (search) {
         query = query.ilike('question_text', `%${search}%`);
+    }
+    if (category) {
+        query = query.eq('category_id', Number(category));
+    }
+    if (difficulty) {
+        query = query.eq('difficulty', difficulty);
     }
 
     const [{ data: questions, error }, { data: categories }] = await Promise.all([
@@ -75,6 +93,7 @@ export default async function MentorQuestionsPage({
     });
 
     const intrebareEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
+    const areFiltre = search !== '' || category !== '' || difficulty !== '';
 
     return (
         <div className="space-y-6">
@@ -101,8 +120,37 @@ export default async function MentorQuestionsPage({
                             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                         />
                     </div>
-                    <Button type="submit" variant="secondary">Caută</Button>
-                    {search && (
+
+                    <div className="min-w-45">
+                        <label className="block text-sm font-medium text-slate-700">Categorie</label>
+                        <select
+                            name="category"
+                            defaultValue={category}
+                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        >
+                            <option value="">Toate</option>
+                            {categories?.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="min-w-40">
+                        <label className="block text-sm font-medium text-slate-700">Dificultate</label>
+                        <select
+                            name="difficulty"
+                            defaultValue={difficulty}
+                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        >
+                            <option value="">Toate</option>
+                            <option value="EASY">Ușor</option>
+                            <option value="MEDIUM">Mediu</option>
+                            <option value="HARD">Greu</option>
+                        </select>
+                    </div>
+
+                    <Button type="submit" variant="secondary">Filtrează</Button>
+                    {areFiltre && (
                         <Link href="/questions" className="px-2 py-2 text-sm text-slate-500 hover:underline">
                             Resetează
                         </Link>
@@ -114,18 +162,18 @@ export default async function MentorQuestionsPage({
                 <table className="w-full text-left text-sm text-slate-600">
                     <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
                     <tr>
-                        <th className="px-6 py-3">
-                            <Link href={`/questions?sort=name${search ? `&search=${search}` : ''}`} className="hover:text-slate-800">
+                        <th className="whitespace-nowrap px-6 py-3">
+                            <Link href={sortLink('name')} className="hover:text-slate-800">
                                 Enunț ↕
                             </Link>
                         </th>
-                        <th className="px-6 py-3">
-                            <Link href={`/questions?sort=category${search ? `&search=${search}` : ''}`} className="hover:text-slate-800">
+                        <th className="whitespace-nowrap px-6 py-3">
+                            <Link href={sortLink('category')} className="hover:text-slate-800">
                                 Categorie ↕
                             </Link>
                         </th>
-                        <th className="px-6 py-3">
-                            <Link href={`/questions?sort=difficulty${search ? `&search=${search}` : ''}`} className="hover:text-slate-800">
+                        <th className="whitespace-nowrap px-6 py-3">
+                            <Link href={sortLink('difficulty')} className="hover:text-slate-800">
                                 Dificultate ↕
                             </Link>
                         </th>
@@ -190,7 +238,7 @@ export default async function MentorQuestionsPage({
 
                 {listaOrdonata.length === 0 && (
                     <p className="px-6 py-8 text-center text-sm text-slate-500">
-                        {search ? 'Nicio întrebare nu corespunde căutării.' : 'Nu există nicio întrebare încă.'}
+                        {areFiltre ? 'Nicio întrebare nu corespunde filtrelor.' : 'Nu există nicio întrebare încă.'}
                     </p>
                 )}
             </Card>
