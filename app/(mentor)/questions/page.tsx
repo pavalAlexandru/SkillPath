@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/Card';
 import { QuestionForm } from '@/components/mentor/QuestionForm';
+import { toggleQuestionActive } from '@/server/actions/questions';
 import { createClient } from '@/server/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +58,7 @@ export default async function MentorQuestionsPage() {
                         <th className="px-6 py-3">Categorie</th>
                         <th className="px-6 py-3">Dificultate</th>
                         <th className="px-6 py-3">Variante</th>
+                        <th className="px-6 py-3">Status</th>
                         <th className="px-6 py-3 text-right">Acțiuni</th>
                     </tr>
                     </thead>
@@ -77,8 +79,32 @@ export default async function MentorQuestionsPage() {
                             <td className="px-6 py-4">
                                 {q.question_options.length} ({q.question_options.filter((o) => o.is_correct).length} corecte)
                             </td>
+                            <td className="px-6 py-4">
+                                {q.is_active ? (
+                                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                                        Activă
+                                    </span>
+                                ) : (
+                                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
+                                        Inactivă
+                                    </span>
+                                )}
+                            </td>
                             <td className="px-6 py-4 text-right">
-                                <button className="text-indigo-600 hover:underline">Editează</button>
+                                <form action={toggleQuestionActive} className="inline">
+                                    <input type="hidden" name="id" value={q.id} />
+                                    <input type="hidden" name="is_active" value={String(q.is_active)} />
+                                    <button
+                                        type="submit"
+                                        className={
+                                            q.is_active
+                                                ? 'text-slate-500 hover:text-slate-800 hover:underline'
+                                                : 'text-emerald-600 hover:underline'
+                                        }
+                                    >
+                                        {q.is_active ? 'Dezactivează' : 'Activează'}
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     ))}

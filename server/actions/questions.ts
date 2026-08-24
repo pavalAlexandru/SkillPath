@@ -69,3 +69,21 @@ export async function createQuestion(formData: FormData) {
 
     revalidatePath('/questions');
 }
+
+export async function toggleQuestionActive(formData: FormData) {
+    const id = Number(formData.get('id'));
+    const isActive = formData.get('is_active') === 'true';
+
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('questions')
+        .update({ is_active: !isActive })
+        .eq('id', id);
+
+    if (error) {
+        console.log('EROARE TOGGLE ÎNTREBARE:', error.message);
+        return;
+    }
+
+    revalidatePath('/questions');
+}
