@@ -54,7 +54,7 @@ export default async function StudentDetailPage({
         { numeCategorie: string; sumaScoruri: number; numar: number; esteZonaSlaba: boolean }
     >();
     for (const s of scoruriCategorii ?? []) {
-        const nume = s.categories?.name ?? 'Categorie necunoscută';
+        const nume = (s.categories as unknown as { name: string } | null)?.name ?? 'Categorie necunoscută';
         const curent = statisticiPerCategorie.get(nume) ?? {
             numeCategorie: nume,
             sumaScoruri: 0,
