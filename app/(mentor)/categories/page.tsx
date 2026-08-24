@@ -20,18 +20,20 @@ const ORDINE_NIVEL: Record<string, number> = {
 export default async function CategoriesPage({
                                                  searchParams,
                                              }: {
-    searchParams: Promise<{ search?: string; status?: string ,edit?:string; sort?: string}>;
+    searchParams: Promise<{ search?: string; status?: string ,edit?:string; sort?: string; level?: string}>;
 }) {
     const params = await searchParams;
     const search = params.search ?? '';
     const status = params.status ?? 'all';
     const sort = params.sort ?? '';
+    const level = params.level ?? '';
     const editId=params.edit ?Number(params.edit ) : null; //transforma string in nr
 
     function sortLink(field: string) {
         const qs = new URLSearchParams();
         if (search) qs.set('search', search);
         if (status !== 'all') qs.set('status', status);
+        if (level) qs.set('level', level);
         qs.set('sort', field);
         return `/categories?${qs.toString()}`;
     }
@@ -60,6 +62,10 @@ export default async function CategoriesPage({
         query = query.eq('is_active', false);
     }
 
+    if (level) {
+        query = query.eq('level', level);
+    }
+
     const { data: categories, error } = await query;
 
     if (error) {
@@ -84,7 +90,7 @@ export default async function CategoriesPage({
         return 0;
     });
 
-    const areFiltre = search !== '' || status !== 'all';
+    const areFiltre = search !== '' || status !== 'all' || level !== '';
 
     return (
         <div className="space-y-6">
@@ -171,6 +177,20 @@ export default async function CategoriesPage({
                             <option value="all">Toate</option>
                             <option value="active">Doar active</option>
                             <option value="inactive">Doar inactive</option>
+                        </select>
+                    </div>
+
+                    <div className="min-w-40">
+                        <label className="block text-sm font-medium text-slate-700">Nivel</label>
+                        <select
+                            name="level"
+                            defaultValue={level}
+                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        >
+                            <option value="">Toate</option>
+                            <option value="JUNIOR">Junior</option>
+                            <option value="MIDDLE">Middle</option>
+                            <option value="SENIOR">Senior</option>
                         </select>
                     </div>
 
