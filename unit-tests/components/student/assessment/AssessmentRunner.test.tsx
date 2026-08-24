@@ -1,12 +1,17 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AssessmentRunner } from '@/components/assessment/AssessmentRunner';
 import { completeAssessmentAction } from '@/server/actions/assessment';
+import { useRouter } from 'next/navigation';
 import { QuestionItem } from '@/types/assesments';
 
 vi.mock('@/server/actions/assessment', () => ({
     completeAssessmentAction: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+    useRouter: vi.fn(),
 }));
 
 const mockQuestions: QuestionItem[] = [
@@ -36,6 +41,15 @@ const mockQuestions: QuestionItem[] = [
 ];
 
 describe('AssessmentRunner UI Component', () => {
+    const mockPush = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(useRouter).mockReturnValue({
+            push: mockPush,
+        } as unknown as ReturnType<typeof useRouter>);
+    });
+
     it('randează prima întrebare și afișează badge-ul de Răspuns Unic', () => {
         render(<AssessmentRunner assessmentId="1" questions={mockQuestions} />);
 
@@ -91,5 +105,22 @@ describe('AssessmentRunner UI Component', () => {
         fireEvent.click(finishBtn);
 
         expect(completeAssessmentAction).toHaveBeenCalled();
+    });
+
+    it('deschide pop-up-ul de abandon și redirecționează la confirmare spre /assessment', () => {
+        render(<AssessmentRunner assessmentId="1" questions={mockQuestions} />);
+
+        // Click pe butonul de abandon
+        const abandonBtn = screen.getByRole('button', { name: /Abandonează testul/i });
+        fireEvent.click(abandonBtn);
+
+        // Verificăm apariția modalului
+        expect(screen.getByText('Sigur vrei să părăsești testul?')).toBeDefined();
+
+        // Click pe confirmare părăsire test
+        const confirmBtn = screen.getByRole('button', { name: /Părăsește testul/i });
+        fireEvent.click(confirmBtn);
+
+        expect(mockPush).toHaveBeenCalledWith('/assessment');
     });
 });
