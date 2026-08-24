@@ -34,4 +34,5 @@ export interface AssessmentResult {
     totalQuestions: number;
     percentage: number;
     passed: boolean;
+    newId?: number;
 }

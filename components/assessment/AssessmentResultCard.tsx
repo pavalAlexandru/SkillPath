@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AssessmentResult } from '@/types/assesments';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { AIRecommendations } from './AIRecommendations';
 
 interface AssessmentResultCardProps {
     assessmentId: string;
@@ -28,7 +29,18 @@ export function AssessmentResultCard({ assessmentId, result }: AssessmentResultC
                     {result.passed ? 'PROMOVAT' : 'NECESITĂ REVIZUIRE'}
                 </span>
             </div>
-            <div className="flex justify-center gap-4">
+            
+            {result.newId ? (
+                <AIRecommendations assessmentId={result.newId} />
+            ) : (
+                <div className="p-6 text-center space-y-4 animate-pulse mt-8 border border-slate-100 rounded-xl bg-slate-50/50">
+                    <div className="h-6 w-1/3 bg-slate-200 rounded mx-auto"></div>
+                    <div className="h-4 w-3/4 bg-slate-200 rounded mx-auto"></div>
+                    <p className="text-sm text-slate-500 font-medium">Se salvează rezultatele și se preiau detaliile...</p>
+                </div>
+            )}
+
+            <div className="flex justify-center gap-4 mt-8">
                 <Link href="/assessment">
                     <Button variant="primary">Înapoi la Teste</Button>
                 </Link>

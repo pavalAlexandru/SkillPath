@@ -11,10 +11,12 @@ export async function completeAssessmentAction(
     questions: QuestionItem[]
 ) {
     try {
-        await saveCompletedAssessment(assessmentId, scorePercentage, answers, questions);
+        const newId = await saveCompletedAssessment(assessmentId, scorePercentage, answers, questions);
         revalidatePath('/assessment');
         revalidatePath('/dashboard');
+        return newId;
     } catch (error) {
         console.error('Eroare la finalizarea evaluării:', error);
+        return null;
     }
 }
