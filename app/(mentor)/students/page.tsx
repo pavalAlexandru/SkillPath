@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { promoteToMentor, toggleStudentActive } from '@/server/actions/students';
+import { PromoteToMentorForm } from '@/components/mentor/PromoteToMentorForm';
+import { toggleStudentActive } from '@/server/actions/students';
 import { createClient } from '@/server/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -128,12 +129,10 @@ export default async function StudentsPage({
                                                 {s.is_active ? 'Dezactivează' : 'Activează'}
                                             </button>
                                         </form>
-                                        <form action={promoteToMentor} className="inline">
-                                            <input type="hidden" name="id" value={s.id} />
-                                            <button type="submit" className="text-indigo-600 hover:underline">
-                                                Promovează la mentor
-                                            </button>
-                                        </form>
+                                        <PromoteToMentorForm
+                                            studentId={s.id}
+                                            studentName={`${s.first_name} ${s.last_name}`}
+                                        />
                                     </div>
                                 </td>
                             </tr>
