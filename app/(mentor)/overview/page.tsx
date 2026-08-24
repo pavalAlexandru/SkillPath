@@ -68,8 +68,33 @@ export default async function  MentorOverviewPage(){
                 </p>
             </div>
 
+            <div className="flex flex-wrap gap-3">
+                <Link
+                    href="/questions"
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Adaugă întrebare
+                </Link>
+                <Link
+                    href="/categories"
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Adaugă categorie
+                </Link>
+                <Link
+                    href="/students"
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                >
+                    <span className="material-symbols-outlined text-[18px]">groups</span>
+                    Vezi studenți
+                </Link>
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
+                    icon="pending_actions"
                     barColor="border-t-amber-500"
                     chipColor="border-amber-200 bg-amber-50 text-amber-700"
                     chipLabel={propuneri.count && propuneri.count > 0 ? 'Necesită atenție' : 'La zi'}
@@ -79,6 +104,7 @@ export default async function  MentorOverviewPage(){
                     href="/proposals"
                 />
                 <StatCard
+                    icon="quiz"
                     barColor="border-t-indigo-500"
                     chipColor="border-indigo-200 bg-indigo-50 text-indigo-700"
                     chipLabel="Catalog"
@@ -88,6 +114,7 @@ export default async function  MentorOverviewPage(){
                     href="/questions"
                 />
                 <StatCard
+                    icon="groups"
                     barColor="border-t-slate-400"
                     chipColor="border-slate-200 bg-slate-50 text-slate-600"
                     chipLabel="Comunitate"
@@ -96,6 +123,7 @@ export default async function  MentorOverviewPage(){
                     note="Conturi cu rol student"
                 />
                 <StatCard
+                    icon="task_alt"
                     barColor="border-t-emerald-500"
                     chipColor="border-emerald-200 bg-emerald-50 text-emerald-700"
                     chipLabel="Rapoarte"
@@ -230,6 +258,7 @@ function numaraCategoriiDificile(
 
 //slice pastreaza printele 3 din lista
 function StatCard(props: {
+    icon: string;
     barColor: string;
     chipColor: string;
     chipLabel: string;
@@ -240,11 +269,16 @@ function StatCard(props: {
 }) {
     return (
         <Card className={`border-t-4 ${props.barColor}`}>
-            <span
-                className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${props.chipColor}`}
-            >
-                {props.chipLabel}
-            </span>
+            <div className="flex items-center justify-between">
+                <span className={`material-symbols-outlined rounded-lg p-1.5 text-[20px] ${props.chipColor}`}>
+                    {props.icon}
+                </span>
+                <span
+                    className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${props.chipColor}`}
+                >
+                    {props.chipLabel}
+                </span>
+            </div>
 
             <p className="mt-3 text-sm font-medium text-slate-500">{props.label}</p>
             <p className="mt-1 text-3xl font-bold text-slate-900">{props.value}</p>
