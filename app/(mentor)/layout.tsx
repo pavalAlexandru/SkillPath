@@ -10,6 +10,7 @@ export default function MentorLayout({
         { label: 'Categorii', href: '/categories' },
         { label: 'Catalog Întrebări', href: '/questions' },
         { label: 'Propuneri Studenți', href: '/proposals' },
+        { label: 'Studenți', href: '/students' },
     ];
 
     return (
