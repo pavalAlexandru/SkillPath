@@ -18,7 +18,7 @@ export default async function  MentorOverviewPage(){
         supabase
         .from('questions')
         .select('*',{count:' exact', head:true})
-        .eq('status', 'PENDING')
+        .eq('status', 'APPROVED')
         .eq('is_active', true),
         supabase
             .from('profiles')
@@ -39,6 +39,26 @@ export default async function  MentorOverviewPage(){
         (zoneSlabe.data ?? []) as unknown as { category_id: number; categories: { name: string } | null }[],
     );
     //unknown înseamnă „ar putea fi orice, nu presupun nimic".
+
+    // Ultimele 5 evaluări finalizate, cu numele studentului. Le luăm în două
+    // interogări separate (evaluări, apoi profilurile lor) în loc de o singură
+    // interogare cu legătură — mai simplu și fără riscul formei neașteptate
+    // pe care l-am întâlnit la alte legături azi.
+    const { data: evaluariRecente } = await supabase
+        .from('assessments')
+        .select('id, user_id, total_score, completed_at')
+        .eq('status', 'COMPLETED')
+        .order('completed_at', { ascending: false })
+        .limit(5);
+
+    const idStudentiRecenti = (evaluariRecente ?? []).map((a) => a.user_id);
+    const { data: profileRecente } = idStudentiRecenti.length
+        ? await supabase.from('profiles').select('id, first_name, last_name').in('id', idStudentiRecenti)
+        : { data: [] };
+
+    const numePerId = new Map(
+        (profileRecente ?? []).map((p) => [p.id, `${p.first_name} ${p.last_name}`]),
+    );
     return (
         <div className="space-y-6">
             <div>
@@ -116,6 +136,46 @@ export default async function  MentorOverviewPage(){
                 ) : (
                     <p className="py-6 text-center text-sm text-slate-400">
                         Nu există încă suficiente evaluări pentru a identifica zone slabe.
+                    </p>
+                )}
+            </Card>
+
+            <Card className="overflow-hidden p-0">
+                <div className="border-b border-slate-100 px-6 py-4">
+                    <h2 className="text-base font-bold text-slate-900">Activitate recentă</h2>
+                    <p className="text-xs text-slate-500">Ultimele evaluări finalizate de studenți.</p>
+                </div>
+
+                {evaluariRecente && evaluariRecente.length > 0 ? (
+                    <table className="w-full text-left text-sm text-slate-600">
+                        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+                            <tr>
+                                <th className="px-6 py-3">Student</th>
+                                <th className="px-6 py-3">Dată</th>
+                                <th className="px-6 py-3">Scor</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {evaluariRecente.map((a) => (
+                                <tr key={a.id} className="hover:bg-slate-50">
+                                    <td className="px-6 py-4 font-medium text-slate-900">
+                                        {numePerId.get(a.user_id) ?? 'Student necunoscut'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {a.completed_at
+                                            ? new Date(a.completed_at).toLocaleDateString('ro-RO')
+                                            : '—'}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {a.total_score !== null ? `${a.total_score}%` : '—'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p className="px-6 py-8 text-center text-sm text-slate-500">
+                        Nu există încă nicio evaluare finalizată.
                     </p>
                 )}
             </Card>
