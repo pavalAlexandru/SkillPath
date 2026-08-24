@@ -74,6 +74,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
     const [result, setResult] = useState<AssessmentResult | null>(null);
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
+    const isOnboarding = assessmentId === 'onboarding';
     const currentQuestion = questions[currentIndex];
     const selectedOptions = currentQuestion ? answers[currentQuestion.id] || [] : [];
     const isLastQuestion = currentIndex === questions.length - 1;
@@ -137,19 +138,21 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
     return (
         <>
             <Card className="mx-auto max-w-3xl p-8 space-y-6">
-                {/* Buton abandon test */}
-                <div className="flex items-center justify-between">
-                    <button
-                        type="button"
-                        onClick={() => setIsExitModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors"
-                    >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Abandonează testul
-                    </button>
-                </div>
+                {/* Buton abandon test - afișat doar dacă NU este onboarding */}
+                {!isOnboarding && (
+                    <div className="flex items-center justify-between">
+                        <button
+                            type="button"
+                            onClick={() => setIsExitModalOpen(true)}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Abandonează testul
+                        </button>
+                    </div>
+                )}
 
                 <AssessmentHeader
                     assessmentId={assessmentId}
@@ -187,12 +190,14 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                 </div>
             </Card>
 
-            {/* Modal de confirmare ieșire */}
-            <ExitAssessmentModal
-                isOpen={isExitModalOpen}
-                onClose={() => setIsExitModalOpen(false)}
-                onConfirm={handleConfirmExit}
-            />
+            {/* Modal de confirmare ieșire - activ doar dacă nu este onboarding */}
+            {!isOnboarding && (
+                <ExitAssessmentModal
+                    isOpen={isExitModalOpen}
+                    onClose={() => setIsExitModalOpen(false)}
+                    onConfirm={handleConfirmExit}
+                />
+            )}
         </>
     );
 }

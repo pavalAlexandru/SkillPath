@@ -13,7 +13,6 @@ export function normalizeAppRole(value: unknown): "STUDENT" | "MENTOR" | null {
 }
 
 export async function proxy(request: NextRequest) {
-  // Excepție pentru testele automate E2E
   if (
       process.env.NODE_ENV === "test" ||
       request.headers.get("x-e2e-test") === "true"
@@ -53,12 +52,14 @@ export async function proxy(request: NextRequest) {
     "/propose",
     "/assessment",
   ].some((p) => path.startsWith(p));
-    const isMentorPath = [
-        "/overview",
-        "/questions",
-        "/proposals",
-        "/categories",
-    ].some((p) => path.startsWith(p));
+
+  const isMentorPath = [
+    "/overview",
+    "/questions",
+    "/proposals",
+    "/categories",
+  ].some((p) => path.startsWith(p));
+
   const isProtectedPath = isStudentPath || isMentorPath;
 
   if (!user && isProtectedPath) {
@@ -80,6 +81,25 @@ export async function proxy(request: NextRequest) {
 
     if (isMentorPath && role !== "MENTOR") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Studenții noi (0 teste) sunt trimiși obligatoriu la Onboarding
+    if (role === "STUDENT") {
+      const isOnboardingRoute = path.startsWith("/assessment/onboarding");
+
+      if (!isOnboardingRoute) {
+        const { count } = await supabase
+            .from("assessments")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("status", "COMPLETED");
+
+        const hasCompletedAssessments = (count || 0) > 0;
+
+        if (!hasCompletedAssessments) {
+          return NextResponse.redirect(new URL("/assessment/onboarding", request.url));
+        }
+      }
     }
   }
 

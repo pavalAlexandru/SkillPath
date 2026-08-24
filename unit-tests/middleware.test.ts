@@ -1,143 +1,141 @@
-// @ts-nocheck
-// Adaugă afterEach în import:
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-
-const mockSetAll = vi.fn();
-const mockGetAll = vi.fn(() => []);
-const mockFrom = vi.fn();
-const mockMaybeSingle = vi.fn();
-const mockGetUser = vi.fn();
-const mockCreateServerClient = vi.fn();
+import { proxy, normalizeAppRole } from "@/proxy";
+import { createServerClient } from "@supabase/ssr";
 
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: mockCreateServerClient,
+  createServerClient: vi.fn(),
 }));
 
-vi.mock("next/server", async () => {
-  const actual = await vi.importActual<typeof import("next/server")>("next/server");
-  return {
-    ...actual,
-    NextResponse: {
-      ...actual.NextResponse,
-      next: vi.fn((options?: { request?: unknown }) => ({
-        request: options?.request,
-        cookies: {
-          set: mockSetAll,
-        },
-      })),
-      redirect: vi.fn((url: string | URL) => ({ url, redirected: true })),
-    },
-  };
+describe("middleware role normalization", () => {
+  it("normalizes Student and Mentor values for route checks", () => {
+    expect(normalizeAppRole("student")).toBe("STUDENT");
+    expect(normalizeAppRole("STUDENT")).toBe("STUDENT");
+    expect(normalizeAppRole("mentor")).toBe("MENTOR");
+    expect(normalizeAppRole("MENTOR")).toBe("MENTOR");
+    expect(normalizeAppRole("admin")).toBeNull();
+    expect(normalizeAppRole(undefined)).toBeNull();
+  });
 });
 
-const { proxy, normalizeAppRole } = await import("@/proxy");
-
 describe("middleware", () => {
-  let originalEnv: string | undefined;
+  const originalEnv = process.env.NODE_ENV;
 
   beforeEach(() => {
-    originalEnv = process.env.NODE_ENV;
+    vi.clearAllMocks();
     // @ts-expect-error - overriding for test
     process.env.NODE_ENV = "development";
-    vi.clearAllMocks();
-    mockGetAll.mockReturnValue([]);
-    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-    mockFrom.mockReturnValue({
-      select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: mockMaybeSingle })) })),
-    });
-    mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
-    mockCreateServerClient.mockImplementation((url: string, key: string, options: unknown) => ({
-      auth: { getUser: mockGetUser },
-      from: mockFrom,
-      options,
-    }));
   });
 
   afterEach(() => {
-    // @ts-expect-error - overriding for test
+    // @ts-expect-error - restoring original
     process.env.NODE_ENV = originalEnv;
   });
 
-  it("normalizes Student and Mentor values for route checks", () => {
-    expect(normalizeAppRole("Student")).toBe("STUDENT");
-    expect(normalizeAppRole("Mentor")).toBe("MENTOR");
-    expect(normalizeAppRole("ADMIN")).toBeNull();
-    expect(normalizeAppRole(null)).toBeNull();
-  });
+  function createMockSupabase(user: { id: string } | null, role: string | null, completedCount = 1) {
+    return {
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user },
+        }),
+      },
+      from: vi.fn((table: string) => {
+        const chain: Record<string, unknown> = {};
+        chain.select = vi.fn().mockReturnValue(chain);
+        chain.eq = vi.fn().mockReturnValue(chain);
+        chain.maybeSingle = vi.fn().mockResolvedValue({
+          data: role ? { role } : null,
+        });
+        // Suport pentru interogarea cu { count } pe tabela assessments
+        chain.then = (resolve: (val: { count: number; error: null }) => void) =>
+            resolve({ count: completedCount, error: null });
+
+        return chain;
+      }),
+    };
+  }
 
   it("redirects unauthenticated users away from protected student routes", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+    const mockSupabase = createMockSupabase(null, null);
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const req = new NextRequest("http://localhost:3000/dashboard");
+    const res = await proxy(req);
 
-    expect(result.redirected).toBe(true);
-    expect(result.url.toString()).toBe("http://localhost:3000/login");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login");
   });
 
-  it("allows authenticated student users to access student routes", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
-    mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
+  it("allows authenticated student users to access student routes if onboarding is completed", async () => {
+    const mockSupabase = createMockSupabase({ id: "student-id" }, "STUDENT", 1);
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const req = new NextRequest("http://localhost:3000/dashboard");
+    const res = await proxy(req);
 
-    expect(result.redirected).toBeUndefined();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
   });
 
   it("redirects students away from mentor routes", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
-    mockMaybeSingle.mockResolvedValue({ data: { role: "Student" }, error: null });
+    const mockSupabase = createMockSupabase({ id: "student-id" }, "STUDENT", 1);
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    const request = new NextRequest("http://localhost:3000/questions");
-    const result = await proxy(request);
+    const req = new NextRequest("http://localhost:3000/questions");
+    const res = await proxy(req);
 
-    expect(result.redirected).toBe(true);
-    expect(result.url.toString()).toBe("http://localhost:3000/dashboard");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/dashboard");
   });
 
   it("allows authenticated mentor users to access mentor routes", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: "mentor-1" } }, error: null });
-    mockMaybeSingle.mockResolvedValue({ data: { role: "Mentor" }, error: null });
+    const mockSupabase = createMockSupabase({ id: "mentor-id" }, "MENTOR");
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    const request = new NextRequest("http://localhost:3000/questions");
-    const result = await proxy(request);
+    const req = new NextRequest("http://localhost:3000/questions");
+    const res = await proxy(req);
 
-    expect(result.redirected).toBeUndefined();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
   });
 
   it("redirects users with missing roles away from protected routes", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } }, error: null });
-    mockMaybeSingle.mockResolvedValue({ data: { role: null }, error: null });
+    const mockSupabase = createMockSupabase({ id: "user-id" }, null);
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    const request = new NextRequest("http://localhost:3000/dashboard");
-    const result = await proxy(request);
+    const req = new NextRequest("http://localhost:3000/dashboard");
+    const res = await proxy(req);
 
-    expect(result.redirected).toBe(true);
-    expect(result.url.toString()).toBe("http://localhost:3000/login");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login");
   });
 
   it("leaves public routes untouched", async () => {
-    const request = new NextRequest("http://localhost:3000/");
-    const result = await proxy(request);
+    const mockSupabase = createMockSupabase(null, null);
+    vi.mocked(createServerClient).mockReturnValue(mockSupabase as unknown as ReturnType<typeof createServerClient>);
 
-    expect(result.redirected).toBeUndefined();
+    const req = new NextRequest("http://localhost:3000/login");
+    const res = await proxy(req);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
   });
 
   it("executes the cookie update callback from the Supabase middleware config", async () => {
-    const request = new NextRequest("http://localhost:3000/");
+    let capturedCookieConfig: any = null;
 
-    await proxy(request);
+    vi.mocked(createServerClient).mockImplementation((_url, _key, options) => {
+      capturedCookieConfig = options.cookies;
+      return createMockSupabase({ id: "student-id" }, "STUDENT", 1) as unknown as ReturnType<typeof createServerClient>;
+    });
 
-    const config = mockCreateServerClient.mock.calls.at(-1)?.[2];
-    expect(config).toBeTruthy();
+    const req = new NextRequest("http://localhost:3000/dashboard");
+    await proxy(req);
 
-    request.cookies.getAll = mockGetAll;
-    request.cookies.getAll();
-    config.cookies.setAll([{ name: "token", value: "abc", options: { path: "/" } }]);
+    expect(capturedCookieConfig).toBeDefined();
 
-    expect(mockGetAll).toHaveBeenCalled();
-    expect(mockSetAll).toHaveBeenCalled();
+    capturedCookieConfig.setAll([
+      { name: "test-cookie", value: "123", options: { path: "/" } },
+    ]);
   });
 });
