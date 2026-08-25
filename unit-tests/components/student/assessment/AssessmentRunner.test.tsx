@@ -14,6 +14,10 @@ vi.mock('next/navigation', () => ({
     useRouter: vi.fn(),
 }));
 
+vi.mock('@/server/actions/ai-hint', () => ({
+    getQuickHint: vi.fn(),
+}));
+
 const mockQuestions: QuestionItem[] = [
     {
         id: 1,
@@ -90,7 +94,7 @@ describe('AssessmentRunner UI Component', () => {
         expect((opt2 as HTMLInputElement).checked).toBe(true);
     });
 
-    it('apelează completeAssessmentAction la apăsarea butonului Finalizează Testul', () => {
+    it('apelează completeAssessmentAction la apăsarea butonului Finalizează Testul', async () => {
         render(<AssessmentRunner assessmentId="1" questions={mockQuestions} />);
 
         // Q1
@@ -104,7 +108,10 @@ describe('AssessmentRunner UI Component', () => {
         const finishBtn = screen.getByRole('button', { name: /Finalizează Testul/i });
         fireEvent.click(finishBtn);
 
-        expect(completeAssessmentAction).toHaveBeenCalled();
+        const { waitFor } = await import('@testing-library/react');
+        await waitFor(() => {
+            expect(completeAssessmentAction).toHaveBeenCalled();
+        });
     });
 
     it('deschide pop-up-ul de abandon și redirecționează la confirmare spre /assessment', () => {

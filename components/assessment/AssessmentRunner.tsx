@@ -73,16 +73,19 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
     const [answers, setAnswers] = useState<Record<number, number[]>>({});
     const [result, setResult] = useState<AssessmentResult | null>(null);
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hints, setHints] = useState<Record<number, string>>({});
 
     const isOnboarding = assessmentId === 'onboarding';
     const currentQuestion = questions[currentIndex];
     const selectedOptions = currentQuestion ? answers[currentQuestion.id] || [] : [];
     const isLastQuestion = currentIndex === questions.length - 1;
     const isMultiple = currentQuestion?.questionType === 'MULTIPLE';
+    const hasUsedHint = Object.keys(hints).length > 0;
 
     // Avertisment nativ la Refresh (F5), închidere tab sau tastare URL nou
     useEffect(() => {
-        if (result) return;
+        if (result || isSubmitting) return;
 
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             e.preventDefault();
@@ -92,7 +95,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [result]);
+    }, [result, isSubmitting]);
 
     const handleSelectOption = (optionId: number) => {
         setAnswers((prev) => {
@@ -112,9 +115,14 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         if (!isLastQuestion) {
             setCurrentIndex((prev) => prev + 1);
         } else {
+            setIsSubmitting(true);
+            // Yield to browser to paint the loading screen before blocking/fetching
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            
             const calculated = calculateAssessmentScore(questions, answers);
-            setResult(calculated);
-            await completeAssessmentAction(assessmentId, calculated.percentage, answers, questions);
+            const newId = await completeAssessmentAction(assessmentId, calculated.percentage, answers, questions);
+            setResult({ ...calculated, newId: newId || undefined });
+            setIsSubmitting(false);
         }
     };
 
@@ -128,6 +136,20 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         setIsExitModalOpen(false);
         router.push('/assessment');
     };
+
+    const handleHintFetched = (questionId: number, hintText: string) => {
+        setHints((prev) => ({ ...prev, [questionId]: hintText }));
+    };
+
+    if (isSubmitting) {
+        return (
+            <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
+                <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+                <h2 className="text-2xl font-bold text-slate-900">Se salvează rezultatele...</h2>
+                <p className="text-slate-500">Calculăm scorul și pregătim detaliile, te rugăm să aștepți.</p>
+            </Card>
+        );
+    }
 
     if (result) {
         return <AssessmentResultCard assessmentId={assessmentId} result={result} />;
@@ -168,6 +190,9 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                     selectedOptions={selectedOptions}
                     isMultiple={isMultiple}
                     onSelectOption={handleSelectOption}
+                    hint={hints[currentQuestion.id]}
+                    canUseHint={!hasUsedHint}
+                    onHintFetched={(text) => handleHintFetched(currentQuestion.id, text)}
                 />
 
                 <div className="flex justify-between pt-4">
