@@ -16,7 +16,7 @@ test.describe('Dashboard Feature E2E', () => {
 
         // Assert that the stats are loaded
         await expect(page.getByText('42')).toBeVisible(); // testsCompleted
-        await expect(page.getByText('85%')).toBeVisible(); // averageScore
+        await expect(page.getByText('85%').first()).toBeVisible(); // averageScore
         await expect(page.getByText('2 of 5')).toBeVisible(); // categoriesPassed
     });
 });
