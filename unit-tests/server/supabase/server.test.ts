@@ -58,4 +58,16 @@ describe("server/supabase/server", () => {
 
     expect(client).toEqual({ client: true });
   });
+
+  it("calls getAll from cookie store", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "demo-key");
+
+    mocks.mockCreateServerClient.mockImplementation((_, __, config) => {
+      expect(config.cookies.getAll()).toEqual([{ name: "sb-access-token", value: "abc" }]);
+      return { client: true };
+    });
+
+    await createClient();
+  });
 });

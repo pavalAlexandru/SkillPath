@@ -9,18 +9,20 @@ vi.mock('@/server/supabase/server', () => ({
     createClient: vi.fn(),
 }));
 
-vi.mock('next/headers', () => ({
-    headers: vi.fn(),
+vi.mock('next/navigation', () => ({
+    usePathname: vi.fn(),
 }));
 
 vi.mock('@/components/shared/LogoutButton', () => ({
     LogoutButton: () => <button>Deconectare</button>,
 }));
 
+import { usePathname } from 'next/navigation';
+
 describe('StudentLayout Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(headers).mockResolvedValue(new Headers({ 'x-pathname': '/dashboard' }));
+        vi.mocked(usePathname).mockReturnValue('/dashboard');
     });
 
     it('afișează emailul real al utilizatorului autentificat în Navbar pe rutele normale', async () => {
@@ -44,7 +46,7 @@ describe('StudentLayout Component', () => {
     });
 
     it('ascunde Navbar-ul complet atunci când utilizatorul este pe ruta de onboarding', async () => {
-        vi.mocked(headers).mockResolvedValue(new Headers({ 'x-pathname': '/assessment/onboarding' }));
+        vi.mocked(usePathname).mockReturnValue('/assessment/onboarding');
 
         vi.mocked(createClient).mockResolvedValue({
             auth: {

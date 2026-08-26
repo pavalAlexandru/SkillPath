@@ -20,6 +20,7 @@ type MockChain = {
     insert: ReturnType<typeof vi.fn>;
     select: ReturnType<typeof vi.fn>;
     single: ReturnType<typeof vi.fn>;
+    maybeSingle: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
     in: ReturnType<typeof vi.fn>;
@@ -42,6 +43,7 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             insert: vi.fn(),
             select: vi.fn(),
             single: vi.fn(),
+            maybeSingle: vi.fn(),
             update: vi.fn(),
             eq: vi.fn(),
             in: vi.fn(),
@@ -51,10 +53,14 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
         mockSupabase.from.mockReturnValue(mockSupabase);
         mockSupabase.insert.mockReturnValue(mockSupabase);
         mockSupabase.select.mockReturnValue(mockSupabase);
+        mockSupabase.single.mockReturnValue(mockSupabase);
+        mockSupabase.maybeSingle.mockReturnValue(mockSupabase);
         mockSupabase.update.mockReturnValue(mockSupabase);
         mockSupabase.eq.mockReturnValue(mockSupabase);
         mockSupabase.in.mockReturnValue(mockSupabase);
         mockSupabase.order.mockReturnValue(mockSupabase);
+
+        mockSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
 
         vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as Awaited<ReturnType<typeof createClient>>);
     });
