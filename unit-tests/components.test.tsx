@@ -1,12 +1,18 @@
-import { vi } from "vitest";
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() })
-}));
-import { describe, it, expect } from 'vitest';
+import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Navbar } from '@/components/shared/Navbar';
+
+vi.mock('next/navigation', () => ({
+    usePathname: () => '/dashboard',
+    useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+vi.mock('@/components/shared/LogoutButton', () => ({
+    LogoutButton: () => <button data-testid="logout-btn">Deconectare</button>,
+}));
 
 describe('UI Base Components', () => {
     it('randeaza butonul cu textul si varianta corecta', () => {
@@ -30,7 +36,11 @@ describe('UI Base Components', () => {
         render(<Navbar roleBadge="STUDENT" userEmail="test@skillpath.ro" items={items} />);
 
         expect(screen.getByText('STUDENT')).toBeDefined();
-        expect(screen.getByText('test@skillpath.ro')).toBeDefined();
+
+        // Când userName lipsește, emailul apare de 2 ori (ca nume și ca subtext)
+        const emailElements = screen.getAllByText('test@skillpath.ro');
+        expect(emailElements.length).toBeGreaterThanOrEqual(1);
+
         expect(screen.getByRole('link', { name: /dashboard/i })).toBeDefined();
     });
 });

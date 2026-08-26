@@ -20,6 +20,7 @@ type MockChain = {
     insert: ReturnType<typeof vi.fn>;
     select: ReturnType<typeof vi.fn>;
     single: ReturnType<typeof vi.fn>;
+    maybeSingle: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     eq: ReturnType<typeof vi.fn>;
     in: ReturnType<typeof vi.fn>;
@@ -42,6 +43,7 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             insert: vi.fn(),
             select: vi.fn(),
             single: vi.fn(),
+            maybeSingle: vi.fn(),
             update: vi.fn(),
             eq: vi.fn(),
             in: vi.fn(),
@@ -55,6 +57,7 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
         mockSupabase.eq.mockReturnValue(mockSupabase);
         mockSupabase.in.mockReturnValue(mockSupabase);
         mockSupabase.order.mockReturnValue(mockSupabase);
+        mockSupabase.maybeSingle.mockResolvedValue({ data: { current_level: 'JUNIOR' }, error: null });
 
         vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as Awaited<ReturnType<typeof createClient>>);
     });
@@ -98,7 +101,6 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             .mockResolvedValueOnce({ data: { id: 200 }, error: null })
             .mockResolvedValueOnce({ data: { id: 600 }, error: null });
 
-        // Simulăm că studentul are scoruri >= 90% la ambele categorii
         mockSupabase.in.mockResolvedValueOnce({
             data: [
                 { category_id: 1, score_percentage: 95 },
@@ -137,7 +139,6 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             .mockResolvedValueOnce({ data: { id: 200 }, error: null })
             .mockResolvedValueOnce({ data: { id: 600 }, error: null });
 
-        // Categoria 2 are sub 90%
         mockSupabase.in.mockResolvedValueOnce({
             data: [
                 { category_id: 1, score_percentage: 100 },
