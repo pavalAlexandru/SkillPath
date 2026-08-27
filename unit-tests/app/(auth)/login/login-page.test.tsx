@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   pushMock: vi.fn(),
   signInWithEmailMock: vi.fn(),
+  signUpWithEmailMock: vi.fn(),
   getUserRoleMock: vi.fn(),
 }));
 
@@ -13,6 +14,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/server/supabase/auth", () => ({
   signInWithEmail: mocks.signInWithEmailMock,
+  signUpWithEmail: mocks.signUpWithEmailMock,
   getUserRole: mocks.getUserRoleMock,
 }));
 
@@ -93,6 +95,63 @@ describe("app/(auth)/login/page", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/email sau parolă invalidă/i)).toBeDefined();
+    });
+  });
+
+  it("toggles to sign up form when 'Înregistrare' is clicked", () => {
+    render(<LoginPage />);
+    const signUpToggleBtn = screen.getAllByRole("button", { name: "Înregistrare" })[0];
+    fireEvent.click(signUpToggleBtn);
+
+    expect(screen.getByRole("heading", { name: "Creare cont Skillpath" })).toBeDefined();
+    expect(screen.getByLabelText("Prenume")).toBeDefined();
+    expect(screen.getByLabelText("Nume")).toBeDefined();
+  });
+
+  it("handles sign up submission successfully and sanitizes email", async () => {
+    mocks.signUpWithEmailMock.mockResolvedValue({ user: { id: "456" } });
+
+    render(<LoginPage />);
+    
+    // Switch to sign up mode
+    fireEvent.click(screen.getAllByRole("button", { name: "Înregistrare" })[0]);
+    
+    fireEvent.change(screen.getByLabelText("Prenume"), { target: { value: "Bob" } });
+    fireEvent.change(screen.getByLabelText("Nume"), { target: { value: "Popescu" } });
+    // Email without domain + with quotes to test sanitization
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: '"bob"' } });
+    fireEvent.change(screen.getByLabelText("Parolă"), { target: { value: "password123" } });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Înregistrare" })[0]);
+
+    await waitFor(() => {
+      // should append @example.com and remove quotes
+      expect(mocks.signUpWithEmailMock).toHaveBeenCalledWith(
+        "bob@example.com",
+        "password123",
+        "Bob",
+        "Popescu",
+        "STUDENT"
+      );
+      expect(mocks.pushMock).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("displays error message on sign up failure", async () => {
+    mocks.signUpWithEmailMock.mockRejectedValue(new Error("Eroare custom signup"));
+
+    render(<LoginPage />);
+    
+    fireEvent.click(screen.getAllByRole("button", { name: "Înregistrare" })[0]);
+    fireEvent.change(screen.getByLabelText("Prenume"), { target: { value: "Bob" } });
+    fireEvent.change(screen.getByLabelText("Nume"), { target: { value: "Popescu" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "bob@example.com" } });
+    fireEvent.change(screen.getByLabelText("Parolă"), { target: { value: "password123" } });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Înregistrare" })[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Eroare custom signup")).toBeDefined();
     });
   });
 });

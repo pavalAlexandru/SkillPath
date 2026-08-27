@@ -15,9 +15,9 @@ describe('CategoryCard Component', () => {
         );
 
         expect(screen.getByText('OOP Fundamentals')).toBeDefined();
-        expect(screen.getByText('Start Assessment')).toBeDefined();
-        expect(screen.queryByText(/PASSED/i)).toBeNull();
-        expect(screen.queryByText(/REVIEW/i)).toBeNull();
+        expect(screen.getByText('Începe Evaluarea')).toBeDefined();
+        expect(screen.queryByText(/PROMOVAT/i)).toBeNull();
+        expect(screen.queryByText(/REVIZUIRE/i)).toBeNull();
     });
 
     it('afișează badge-ul PASSED și Review Material când scorul este >= 60%', () => {
@@ -29,16 +29,16 @@ describe('CategoryCard Component', () => {
                 level="JUNIOR"
                 progress={{
                     categoryId: 1,
-                    lastScore: 85,
+                    lastScore: 95, // Trebuie sa fie >= 90 ca sa fie isMastered in codul de azi
                     passed: true,
                     completedAt: '2026-08-21T10:00:00Z',
                 }}
             />
         );
 
-        expect(screen.getByText(/PASSED/i)).toBeDefined();
-        expect(screen.getByText('85%')).toBeDefined();
-        expect(screen.getByText('Review Material')).toBeDefined();
+        expect(screen.getByText(/PROMOVAT/i)).toBeDefined();
+        expect(screen.getByText('95%')).toBeDefined();
+        expect(screen.getByText('Revizuiește Materialul')).toBeDefined();
     });
 
     it('afișează badge-ul REVIEW și Try again când scorul este < 60%', () => {
@@ -57,8 +57,8 @@ describe('CategoryCard Component', () => {
             />
         );
 
-        expect(screen.getByText(/REVIEW/i)).toBeDefined();
+        expect(screen.getByText(/REVIZUIRE/i)).toBeDefined();
         expect(screen.getByText('40%')).toBeDefined();
-        expect(screen.getByText('Try again')).toBeDefined();
+        expect(screen.getByText('Încearcă din nou')).toBeDefined();
     });
 });

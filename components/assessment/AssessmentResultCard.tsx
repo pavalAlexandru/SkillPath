@@ -7,13 +7,9 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AIRecommendations } from './AIRecommendations';
 
-interface ExtendedAssessmentResult extends AssessmentResult {
-    newId?: number | string;
-}
-
 interface AssessmentResultCardProps {
     assessmentId: string;
-    result: ExtendedAssessmentResult;
+    result: AssessmentResult;
 }
 
 export function AssessmentResultCard({ assessmentId, result }: AssessmentResultCardProps) {
@@ -83,7 +79,7 @@ export function AssessmentResultCard({ assessmentId, result }: AssessmentResultC
             {!isOnboarding && (
                 <div className="pt-2 text-left">
                     {result.newId ? (
-                        <AIRecommendations assessmentId={String(result.newId)} />
+                        <AIRecommendations assessmentId={result.newId} />
                     ) : (
                         <div className="p-6 text-center space-y-4 animate-pulse border border-slate-100 rounded-xl bg-slate-50/50">
                             <div className="h-5 w-1/3 bg-slate-200 rounded mx-auto" />

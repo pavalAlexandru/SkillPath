@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => {
   const mockSignInWithPassword = vi.fn();
   const mockSignOut = vi.fn();
   const mockMaybeSingle = vi.fn();
+  const mockSignUp = vi.fn();
+  const mockUpsert = vi.fn();
   const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
   const mockSelect = vi.fn(() => ({ eq: mockEq }));
   const mockSupabase = {
@@ -14,8 +16,9 @@ const mocks = vi.hoisted(() => {
       getUser: mockGetUser,
       signInWithPassword: mockSignInWithPassword,
       signOut: mockSignOut,
+      signUp: mockSignUp,
     },
-    from: vi.fn(() => ({ select: mockSelect })),
+    from: vi.fn(() => ({ select: mockSelect, upsert: mockUpsert })),
   };
 
   return {
@@ -26,6 +29,8 @@ const mocks = vi.hoisted(() => {
     mockMaybeSingle,
     mockEq,
     mockSelect,
+    mockSignUp,
+    mockUpsert,
     mockSupabase,
   };
 });
@@ -40,6 +45,7 @@ import {
   getUserRole,
   normalizeAppRole,
   signInWithEmail,
+  signUpWithEmail,
   signOut,
 } from "@/server/supabase/auth";
 
@@ -97,5 +103,89 @@ describe("server/supabase/auth", () => {
     await signOut();
 
     expect(mocks.mockSignOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("signs up a new user successfully", async () => {
+    mocks.mockSignUp.mockResolvedValue({ 
+      data: { user: { id: "new-user-123", identities: [{}] } }, 
+      error: null 
+    });
+    mocks.mockUpsert.mockResolvedValue({ error: null });
+
+    const result = await signUpWithEmail("new@example.com", "pass123", "John", "Doe", "STUDENT");
+
+    expect(mocks.mockSignUp).toHaveBeenCalledWith({
+      email: "new@example.com",
+      password: "pass123",
+      options: {
+        data: {
+          first_name: "John",
+          last_name: "Doe",
+          role: "STUDENT"
+        }
+      }
+    });
+
+    // Check profiles upsert
+    expect(mocks.mockSupabase.from).toHaveBeenCalledWith("profiles");
+    expect(mocks.mockUpsert).toHaveBeenCalledWith({
+      id: "new-user-123",
+      email: "new@example.com",
+      first_name: "John",
+      last_name: "Doe",
+      role: "STUDENT"
+    });
+
+    // Check student_profiles upsert
+    expect(mocks.mockSupabase.from).toHaveBeenCalledWith("student_profiles");
+    expect(mocks.mockUpsert).toHaveBeenCalledWith({
+      user_id: "new-user-123",
+      current_level: "JUNIOR"
+    });
+
+    expect(result.user?.id).toBe("new-user-123");
+  });
+
+  it("throws error if signup returns an empty identities array (duplicate email)", async () => {
+    mocks.mockSignUp.mockResolvedValue({ 
+      data: { user: { id: "new-user-123", identities: [] } }, 
+      error: null 
+    });
+
+    await expect(signUpWithEmail("dup@example.com", "pass123", "John", "Doe", "STUDENT")).rejects.toThrow("Un cont cu acest email există deja.");
+  });
+
+  it("throws error if profile creation fails", async () => {
+    mocks.mockSignUp.mockResolvedValue({ 
+      data: { user: { id: "new-user-123", identities: [{}] } }, 
+      error: null 
+    });
+    mocks.mockUpsert.mockResolvedValueOnce({ error: new Error("Profile error") }); // for profiles
+
+    await expect(signUpWithEmail("new@example.com", "pass123", "John", "Doe", "STUDENT")).rejects.toThrow("Profile error");
+  });
+  it("returns null if getUserRole encounters an error", async () => {
+    mocks.mockMaybeSingle.mockResolvedValueOnce({ data: null, error: { message: "DB Error" } });
+    
+    const role = await getUserRole("user-123");
+    expect(role).toBeNull();
+  });
+
+  it("throws error if student profile creation fails", async () => {
+    mocks.mockSignUp.mockResolvedValue({ 
+      data: { user: { id: "new-user-123", identities: [{}] } }, 
+      error: null 
+    });
+    mocks.mockUpsert
+      .mockResolvedValueOnce({ error: null }) // for profiles
+      .mockResolvedValueOnce({ error: new Error("Student profile error") }); // for student_profiles
+
+    await expect(signUpWithEmail("new@example.com", "pass123", "John", "Doe", "STUDENT")).rejects.toThrow("Student profile error");
+  });
+
+  it("returns null if normalizeAppRole receives non-string", () => {
+    expect(normalizeAppRole(123)).toBeNull();
+    expect(normalizeAppRole(null)).toBeNull();
+    expect(normalizeAppRole({})).toBeNull();
   });
 });

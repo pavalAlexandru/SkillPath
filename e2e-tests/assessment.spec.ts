@@ -29,8 +29,8 @@ test.describe('Assessment Flow E2E', () => {
         }
 
         // 5. Verifică ecranul final de rezultat
-        await expect(page.getByText(/Rezultat Evaluare/i)).toBeVisible({ timeout: 5000 });
-        await expect(page.getByText(/PROMOVAT|NECESITĂ REVIZUIRE/i)).toBeVisible();
+        await expect(page.getByText(/Test Finalizat cu Succes!|Evaluare Finalizată/i)).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText(/Mastery Score/i)).toBeVisible();
     });
 
     test('navigarea înainte și înapoi funcționează corect', async ({ page }) => {
