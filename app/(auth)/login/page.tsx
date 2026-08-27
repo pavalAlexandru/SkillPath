@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import {
   getUserRole,
   AppRole,
 } from "@/server/supabase/auth";
+import { getSupabaseClient } from "@/server/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,47 @@ export default function LoginPage() {
 
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isEmailVerificationPending, setIsEmailVerificationPending] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+        const userRole = await getUserRole(session.user.id);
+        if (userRole === "STUDENT") {
+          router.push("/dashboard");
+        } else if (userRole === "MENTOR") {
+          router.push("/questions");
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (!isEmailVerificationPending) return;
+
+    const intervalId = setInterval(async () => {
+      const supabase = getSupabaseClient();
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session) {
+        clearInterval(intervalId);
+        // We have a session, trigger redirect
+        const userRole = await getUserRole(data.session.user.id);
+        if (userRole === "STUDENT") {
+          router.push("/dashboard");
+        } else if (userRole === "MENTOR") {
+          router.push("/questions");
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, [isEmailVerificationPending, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,13 +76,20 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { user } = await signUpWithEmail(finalEmail,
+        const data = await signUpWithEmail(finalEmail,
           password,
           firstName,
           lastName,
           role,
         );
+        const { user, session } = data;
         if (!user) throw new Error("Înregistrare eșuată.");
+        
+        if (!session) {
+          setIsEmailVerificationPending(true);
+          return;
+        }
+
         // Auto-login doesn't always populate role correctly right away if it's cached, but let's route them based on the role they signed up with
         if (role === "STUDENT") {
           router.push("/dashboard");
@@ -72,6 +121,19 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (isEmailVerificationPending) {
+    return (
+      <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
+        <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+        <h2 className="text-2xl font-bold text-slate-900">Verifică-ți adresa de email</h2>
+        <p className="text-slate-500">
+          Am trimis un link de confirmare pe adresa <strong>{email}</strong>.<br/>
+          Dă click pe acel link pentru a-ți activa contul, apoi vei fi conectat automat aici.
+        </p>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-8">
