@@ -59,6 +59,7 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
         mockSupabase.eq.mockReturnValue(mockSupabase);
         mockSupabase.in.mockReturnValue(mockSupabase);
         mockSupabase.order.mockReturnValue(mockSupabase);
+        mockSupabase.maybeSingle.mockResolvedValue({ data: { current_level: 'JUNIOR' }, error: null });
 
         mockSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
 
@@ -104,7 +105,6 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             .mockResolvedValueOnce({ data: { id: 200 }, error: null })
             .mockResolvedValueOnce({ data: { id: 600 }, error: null });
 
-        // Simulăm că studentul are scoruri >= 90% la ambele categorii
         mockSupabase.in.mockResolvedValueOnce({
             data: [
                 { category_id: 1, score_percentage: 95 },
@@ -143,7 +143,6 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
             .mockResolvedValueOnce({ data: { id: 200 }, error: null })
             .mockResolvedValueOnce({ data: { id: 600 }, error: null });
 
-        // Categoria 2 are sub 90%
         mockSupabase.in.mockResolvedValueOnce({
             data: [
                 { category_id: 1, score_percentage: 100 },

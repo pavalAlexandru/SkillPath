@@ -1,8 +1,44 @@
 import { createClient } from '@/server/supabase/server';
 
+export interface CategorySkill {
+    name: string;
+    score: number;
+}
+
+export interface AchievementBadge {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    unlocked: boolean;
+}
+
+export interface ActivityDay {
+    dayName: string;
+    date: string;
+    count: number;
+}
+
+export interface RecommendationResource {
+    title: string;
+    url: string;
+}
+
+export interface FocusArea {
+    id: number;
+    categoryName: string;
+    topicTitle: string;
+    advice: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    createdAt?: string;
+    resources: RecommendationResource[];
+}
+
 export interface DashboardData {
     firstName: string;
     level: string;
+    nextLevel: string;
+    levelProgressPercentage: number;
     testsCompleted: number;
     testsThisWeek: number;
     averageScore: number;
@@ -10,20 +46,17 @@ export interface DashboardData {
     categoriesPassed: number;
     totalCategories: number;
     currentStreak: number;
-    inProgressTest: {
-        id: number;
-        categoryName: string;
-        level: string;
-        answeredQuestions: number;
-        totalQuestions: number;
-    } | null;
     scoreHistory: { date: string; score: number }[];
-    focusAreas: {
-        categoryName: string;
-        topicTitle: string;
-        accuracy: number;
-        advice: string;
-    }[];
+    focusAreas: FocusArea[];
+    allRecommendations: FocusArea[];
+    skillsRadar: CategorySkill[];
+    difficultyAccuracy: {
+        easy: number;
+        medium: number;
+        hard: number;
+    };
+    weeklyActivity: ActivityDay[];
+    achievements: AchievementBadge[];
 }
 
 interface CompletedAssessmentRow {
@@ -50,62 +83,66 @@ interface AssessmentScoreRow {
 }
 
 interface RecommendationRow {
+    id: number;
     topic_title: string | null;
     advice_description: string | null;
+    priority: string | null;
+    created_at: string | null;
     category_id: number | null;
     categories: {
         name: string;
     } | null;
+    recommendation_resources: {
+        title: string;
+        url: string;
+    }[] | null;
 }
 
-interface InProgressAssessmentRow {
-    id: number;
-    assessment_categories: {
-        category_id: number;
-        categories: {
-            name: string;
-            level: string;
-        } | null;
-    }[];
-    assessment_questions: {
-        id: number;
-        is_correct: boolean | null;
-        answered_at: string | null;
-    }[];
+function calculateRealStreak(tests: CompletedAssessmentRow[]): number {
+    if (!tests || tests.length === 0) return 0;
+
+    const completedDates = new Set<string>();
+    tests.forEach((t) => {
+        if (t.completed_at) {
+            const dateStr = new Date(t.completed_at).toISOString().split('T')[0];
+            completedDates.add(dateStr);
+        }
+    });
+
+    if (completedDates.size === 0) return 0;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (!completedDates.has(todayStr) && !completedDates.has(yesterdayStr)) {
+        return 0;
+    }
+
+    let streak = 0;
+    const checkDate = new Date();
+    if (!completedDates.has(todayStr)) {
+        checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    while (true) {
+        const checkStr = checkDate.toISOString().split('T')[0];
+        if (completedDates.has(checkStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+
+    return streak;
 }
 
 export async function getStudentDashboardData(): Promise<DashboardData | null> {
     const supabase = await createClient();
-
-    // --- E2E Mocking Fallback ---
-    let isE2E = false;
-    try {
-        const { headers } = await import('next/headers');
-        const headersList = await headers();
-        isE2E = headersList.get('x-e2e-test') === 'true';
-    } catch (e) {}
-
-    if (isE2E || process.env.NODE_ENV === 'test') {
-        return {
-            firstName: 'E2E Student',
-            level: 'JUNIOR',
-            testsCompleted: 42,
-            testsThisWeek: 3,
-            averageScore: 85,
-            scoreDiffVsMonth: 5,
-            categoriesPassed: 2,
-            totalCategories: 5,
-            currentStreak: 10,
-            inProgressTest: null,
-            scoreHistory: [
-                { date: '01 ian', score: 60 },
-                { date: '02 ian', score: 70 },
-                { date: '03 ian', score: 85 }
-            ],
-            focusAreas: []
-        };
-    }
-    // ----------------------------
 
     // 1. Utilizator autentificat
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -125,6 +162,7 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
         .single();
 
     const currentLevel = studentProfile?.current_level || 'JUNIOR';
+    const nextLevel = currentLevel === 'JUNIOR' ? 'MIDDLE' : currentLevel === 'MIDDLE' ? 'SENIOR' : 'MASTER';
 
     // 3. Teste finalizate
     const { data: completedAssessments } = await supabase
@@ -137,17 +175,16 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
     const tests: CompletedAssessmentRow[] = (completedAssessments as CompletedAssessmentRow[]) || [];
     const testsCompleted = tests.length;
 
-    // Teste din ultima săptămână
+    const currentStreak = calculateRealStreak(tests);
+
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const testsThisWeek = tests.filter((t: CompletedAssessmentRow) => new Date(t.completed_at) >= oneWeekAgo).length;
 
-    // Scor mediu curent
     const averageScore = testsCompleted > 0
         ? Math.round(tests.reduce((acc: number, curr: CompletedAssessmentRow) => acc + Number(curr.total_score || 0), 0) / testsCompleted)
         : 0;
 
-    // Scor mediu luna trecută
     const oneMonthAgo = new Date();
     oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
     const testsLastMonth = tests.filter((t: CompletedAssessmentRow) => new Date(t.completed_at) < oneMonthAgo);
@@ -188,86 +225,158 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
         return score >= 90;
     }).length;
 
-    // 5. Test activ în progres
-    const { data: inProgressAssessmentData } = await supabase
-        .from('assessments')
-        .select(`
-            id,
-            assessment_categories (
-                category_id,
-                categories ( name, level )
-            ),
-            assessment_questions (
-                id,
-                is_correct,
-                answered_at
-            )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'IN_PROGRESS')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const levelProgressPercentage = totalCategories > 0
+        ? Math.round((categoriesPassed / totalCategories) * 100)
+        : 0;
 
-    let inProgressTest = null;
-    if (inProgressAssessmentData) {
-        const inProgress = inProgressAssessmentData as unknown as InProgressAssessmentRow;
-        const catData = inProgress.assessment_categories?.[0]?.categories;
-        const totalQ = inProgress.assessment_questions?.length || 0;
-        const answeredQ = inProgress.assessment_questions?.filter(q => q.answered_at !== null).length || 0;
-
-        inProgressTest = {
-            id: inProgress.id,
-            categoryName: catData?.name || 'Evaluare mixtă',
-            level: catData?.level || currentLevel,
-            answeredQuestions: answeredQ,
-            totalQuestions: totalQ || 10
-        };
-    }
-
-    // 6. Istoric evoluție scor
-    const scoreHistory = tests.slice(-6).map((t: CompletedAssessmentRow) => ({
-        date: new Date(t.completed_at).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short' }),
-        score: Math.round(Number(t.total_score || 0))
+    // 5. Competențe per categorie din nivelul curent
+    const skillsRadar: CategorySkill[] = levelCategories.map((c) => ({
+        name: c.name.length > 15 ? `${c.name.slice(0, 13)}...` : c.name,
+        score: highestScorePerCategory.get(c.id) || 0,
     }));
 
-    // 7. Focus Areas din recomandări
+    // 6. Acuratețe pe Dificultăți
+    const { data: answeredQuestionsData } = await supabase
+        .from('assessment_questions')
+        .select(`
+            is_correct,
+            questions!inner ( difficulty ),
+            assessments!inner ( user_id, status )
+        `)
+        .eq('assessments.user_id', user.id)
+        .eq('assessments.status', 'COMPLETED');
+
+    let easyCorrect = 0, easyTotal = 0;
+    let medCorrect = 0, medTotal = 0;
+    let hardCorrect = 0, hardTotal = 0;
+
+    (answeredQuestionsData || []).forEach((row: any) => {
+        const diff = row.questions?.difficulty?.toUpperCase();
+        const ok = row.is_correct ? 1 : 0;
+        if (diff === 'EASY') { easyTotal++; easyCorrect += ok; }
+        else if (diff === 'MEDIUM') { medTotal++; medCorrect += ok; }
+        else if (diff === 'HARD') { hardTotal++; hardCorrect += ok; }
+    });
+
+    const difficultyAccuracy = {
+        easy: easyTotal > 0 ? Math.round((easyCorrect / easyTotal) * 100) : 0,
+        medium: medTotal > 0 ? Math.round((medCorrect / medTotal) * 100) : 0,
+        hard: hardTotal > 0 ? Math.round((hardCorrect / hardTotal) * 100) : 0,
+    };
+
+    // 7. Activitate săptămânală
+    const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
+    const weeklyActivity: ActivityDay[] = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayTests = tests.filter((t) => t.completed_at?.startsWith(dateStr)).length;
+        weeklyActivity.push({
+            dayName: dayNames[d.getDay()],
+            date: d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }),
+            count: dayTests,
+        });
+    }
+
+    // 8. Achievements
+    const hasPerfectScore = tests.some((t) => Number(t.total_score || 0) === 100);
+    const achievements: AchievementBadge[] = [
+        {
+            id: 'first_step',
+            title: 'Primul Pas',
+            description: 'Finalizează prima ta evaluare',
+            icon: '🎯',
+            unlocked: testsCompleted >= 1,
+        },
+        {
+            id: 'fast_learner',
+            title: 'Învățare Rapidă',
+            description: 'Finalizează cel puțin 5 teste',
+            icon: '⚡',
+            unlocked: testsCompleted >= 5,
+        },
+        {
+            id: 'perfectionist',
+            title: 'Perfecționist',
+            description: 'Obține scorul de 100% la un test',
+            icon: '🏆',
+            unlocked: hasPerfectScore,
+        },
+        {
+            id: 'category_master',
+            title: 'Master de Categorie',
+            description: 'Promovează cel puțin o categorie cu ≥90%',
+            icon: '🛡️',
+            unlocked: categoriesPassed >= 1,
+        },
+    ];
+
+    // 9. Istoric evoluție scor
+    const scoreHistory = tests.slice(-6).map((t: CompletedAssessmentRow) => ({
+        date: new Date(t.completed_at).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short' }),
+        score: Math.round(Number(t.total_score || 0)),
+    }));
+
+    // 10. Toate Recomandările din baza de date
     const { data: recommendationsData } = await supabase
         .from('learning_recommendations')
         .select(`
+            id,
             topic_title,
             advice_description,
+            priority,
+            created_at,
             category_id,
-            categories ( name )
+            categories ( name ),
+            recommendation_resources ( title, url ),
+            assessments!inner ( user_id )
         `)
-        .order('created_at', { ascending: false })
-        .limit(2);
+        .eq('assessments.user_id', user.id)
+        .order('created_at', { ascending: false });
 
     const recsList: RecommendationRow[] = (recommendationsData as unknown as RecommendationRow[]) || [];
-    const focusAreas = recsList.map((r: RecommendationRow) => {
-        const catId = r.category_id;
-        const catScore = catId ? highestScorePerCategory.get(catId) || 45 : 45;
+    const allRecommendations: FocusArea[] = recsList.map((r: RecommendationRow) => {
+        const resources = (r.recommendation_resources || []).map((res) => ({
+            title: res.title,
+            url: res.url,
+        }));
 
         return {
+            id: r.id,
             categoryName: r.categories?.name || 'General',
             topicTitle: r.topic_title || 'Concept fundamental',
-            accuracy: catScore,
-            advice: r.advice_description || 'Necesită exersare suplimentară.'
+            advice: r.advice_description || 'Necesită aprofundare suplimentară.',
+            priority: (r.priority as 'LOW' | 'MEDIUM' | 'HIGH') || 'MEDIUM',
+            createdAt: r.created_at
+                ? new Date(r.created_at).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' })
+                : undefined,
+            resources,
         };
     });
+
+    const focusAreas = allRecommendations.slice(0, 2);
 
     return {
         firstName: profile?.first_name || 'Student',
         level: currentLevel,
+        nextLevel,
+        levelProgressPercentage,
         testsCompleted,
         testsThisWeek,
         averageScore,
         scoreDiffVsMonth,
         categoriesPassed,
         totalCategories,
-        currentStreak: 5,
-        inProgressTest,
+        currentStreak,
         scoreHistory,
-        focusAreas
+        focusAreas,
+        allRecommendations,
+        skillsRadar,
+        difficultyAccuracy,
+        weeklyActivity,
+        achievements,
     };
 }

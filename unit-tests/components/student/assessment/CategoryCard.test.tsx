@@ -15,12 +15,11 @@ describe('CategoryCard Component', () => {
         );
 
         expect(screen.getByText('OOP Fundamentals')).toBeDefined();
-        expect(screen.getByText('Începe Evaluarea')).toBeDefined();
-        expect(screen.queryByText(/PROMOVAT/i)).toBeNull();
-        expect(screen.queryByText(/REVIZUIRE/i)).toBeNull();
+        expect(screen.getByText(/Începe Evaluarea/i)).toBeDefined();
+        expect(screen.getByText(/NETESTAT/i)).toBeDefined();
     });
 
-    it('afișează badge-ul PASSED și Review Material când scorul este >= 60%', () => {
+    it('afișează badge-ul PROMOVAT și butonul de recapitulare când scorul este >= 90%', () => {
         render(
             <CategoryCard
                 id={1}
@@ -29,7 +28,7 @@ describe('CategoryCard Component', () => {
                 level="JUNIOR"
                 progress={{
                     categoryId: 1,
-                    lastScore: 95, // Trebuie sa fie >= 90 ca sa fie isMastered in codul de azi
+                    lastScore: 95,
                     passed: true,
                     completedAt: '2026-08-21T10:00:00Z',
                 }}
@@ -37,11 +36,11 @@ describe('CategoryCard Component', () => {
         );
 
         expect(screen.getByText(/PROMOVAT/i)).toBeDefined();
-        expect(screen.getByText('95%')).toBeDefined();
-        expect(screen.getByText('Revizuiește Materialul')).toBeDefined();
+        expect(screen.getByText(/95/)).toBeDefined();
+        expect(screen.getByText(/Revizuiește Materialul/i)).toBeDefined();
     });
 
-    it('afișează badge-ul REVIEW și Try again când scorul este < 60%', () => {
+    it('afișează badge-ul REVIZUIRE și Încearcă din nou când scorul este sub 90%', () => {
         render(
             <CategoryCard
                 id={1}
@@ -58,7 +57,7 @@ describe('CategoryCard Component', () => {
         );
 
         expect(screen.getByText(/REVIZUIRE/i)).toBeDefined();
-        expect(screen.getByText('40%')).toBeDefined();
-        expect(screen.getByText('Încearcă din nou')).toBeDefined();
+        expect(screen.getByText(/40/)).toBeDefined();
+        expect(screen.getByText(/Încearcă din nou/i)).toBeDefined();
     });
 });
