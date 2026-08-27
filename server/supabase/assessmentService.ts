@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { QuestionItem, StudentLevel } from '@/types/assesments';
 import { calculateSingleQuestionScore } from './assessmentScoring';
 import { checkAndApplyLevelUp } from './assessmentLevelService';
+import { ASSESSMENT_CONFIG } from '@/config/assessmentConfig';
 
 export { getAssessmentQuestions } from './assessmentQueries';
 export { calculateSingleQuestionScore, shuffleArray } from './assessmentScoring';
@@ -59,7 +60,7 @@ export async function getUserCategoryProgress(): Promise<Record<number, Category
             progressMap[catId] = {
                 categoryId: catId,
                 lastScore: score,
-                passed: score >= 60,
+                passed: score >= ASSESSMENT_CONFIG.reviewThresholdPercentage,
                 completedAt: row.assessments?.completed_at || '',
             };
         }
@@ -175,7 +176,7 @@ export async function saveCompletedAssessment(
             assessment_id: newAssessmentId,
             category_id: singleCatId,
             score_percentage: scorePercentage,
-            is_weak_area: scorePercentage < 60,
+            is_weak_area: scorePercentage < ASSESSMENT_CONFIG.reviewThresholdPercentage,
         });
     } else if (isMultiCategory) {
         for (const catId of usedCategoryIds) {
@@ -193,14 +194,14 @@ export async function saveCompletedAssessment(
                 assessment_id: newAssessmentId,
                 category_id: catId,
                 score_percentage: catPct,
-                is_weak_area: catPct < 60,
+                is_weak_area: catPct < ASSESSMENT_CONFIG.reviewThresholdPercentage,
             });
         }
     }
 
     // 5. Promovare Nivel Onboarding
     if (isOnboarding) {
-        if (scorePercentage >= 90) {
+        if (scorePercentage >= ASSESSMENT_CONFIG.passingScorePercentage) {
             if (userLevel === 'JUNIOR') {
                 await supabase
                     .from('student_profiles')
