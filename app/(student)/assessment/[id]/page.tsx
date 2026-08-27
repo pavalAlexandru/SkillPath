@@ -2,6 +2,7 @@ import { AssessmentRunner } from '@/components/assessment/AssessmentRunner';
 import { getAssessmentQuestions } from '@/server/supabase/assessmentService';
 import { getCurrentStudentLevel } from '@/server/supabase/profileService';
 import { StudentLevel } from '@/types/assesments';
+import { ASSESSMENT_CONFIG } from '@/config/assessmentConfig';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,7 +23,10 @@ export default async function AssessmentPage({
     const dbLevel = await getCurrentStudentLevel();
     const effectiveLevel: StudentLevel = paramLevel || dbLevel || 'JUNIOR';
 
-    const limit = id === 'onboarding' ? 3 : 10;
+    // Folosim numărul de întrebări configurat în assessmentConfig
+    const limit = id === 'onboarding'
+        ? ASSESSMENT_CONFIG.onboardingQuestionCount
+        : ASSESSMENT_CONFIG.standardQuestionCount;
 
     // Pasăm nivelul explicit către serviciul de întrebări
     const questions = await getAssessmentQuestions(
@@ -50,7 +54,7 @@ export default async function AssessmentPage({
                         Test Adaptiv de Plasare — Nivel Evaluat: <span className="underline font-extrabold">{effectiveLevel}</span>
                     </h1>
                     <p className="text-xs text-indigo-700 mt-1">
-                        Răspunde corect la cele 3 întrebări (≥90%) pentru a debloca nivelul următor!
+                        Răspunde corect la cele {limit} întrebări (≥{ASSESSMENT_CONFIG.passingScorePercentage}%) pentru a debloca nivelul următor!
                     </p>
                 </div>
             )}

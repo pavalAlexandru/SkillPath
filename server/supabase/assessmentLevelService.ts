@@ -1,6 +1,7 @@
 import { createClient } from './server';
 import { StudentLevel } from '@/types/assesments';
 import { getCategoriesByLevel } from './categoryService';
+import { ASSESSMENT_CONFIG } from '@/config/assessmentConfig';
 
 interface CategoryScoreRow {
     category_id: number;
@@ -42,9 +43,12 @@ export async function checkAndApplyLevelUp(userId: string, currentLevel: Student
         }
     });
 
-    const allPassed90 = categories.every((cat) => (maxScorePerCategory[cat.id] || 0) >= 90);
+    // Verifică dacă toate categoriile nivelului au atins pragul din config (90%)
+    const allPassedThreshold = categories.every(
+        (cat) => (maxScorePerCategory[cat.id] || 0) >= ASSESSMENT_CONFIG.passingScorePercentage
+    );
 
-    if (allPassed90) {
+    if (allPassedThreshold) {
         const nextLevel: StudentLevel = currentLevel === 'JUNIOR' ? 'MIDDLE' : 'SENIOR';
 
         await supabase

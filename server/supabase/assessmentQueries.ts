@@ -8,6 +8,7 @@ import {
 import { getCurrentStudentLevel } from './profileService';
 import { getCategoriesByLevel } from './categoryService';
 import { shuffleArray } from './assessmentScoring';
+import { ASSESSMENT_CONFIG, DifficultyCount } from '@/config/assessmentConfig';
 import { headers } from 'next/headers';
 
 interface RawQuestionOption {
@@ -29,12 +30,17 @@ interface RawQuestionQuery {
 
 export async function getAssessmentQuestions(
     categoryIdOrMode?: string | number,
-    limitCount: number = 10,
+    _overrideCount?: number,
     forcedLevel?: StudentLevel
 ): Promise<QuestionItem[]> {
     const supabase = await createClient();
     const dbLevel = await getCurrentStudentLevel();
-    const activeLevel = forcedLevel || dbLevel;
+    const activeLevel: StudentLevel = forcedLevel || dbLevel || 'JUNIOR';
+
+    const isOnboarding = categoryIdOrMode === 'onboarding';
+    const targetCount = isOnboarding
+        ? ASSESSMENT_CONFIG.onboardingQuestionCount
+        : ASSESSMENT_CONFIG.standardQuestionCount;
 
     // --- E2E Mocking Fallback ---
     let isE2E = false;
@@ -46,12 +52,11 @@ export async function getAssessmentQuestions(
     }
 
     if (isE2E || process.env.NODE_ENV === 'test') {
-        const targetCount = categoryIdOrMode === 'onboarding' ? 3 : limitCount;
         const mockQuestions: QuestionItem[] = Array.from({ length: targetCount }).map((_, i) => ({
             id: i + 1,
             categoryId: Number(categoryIdOrMode) || 1,
             categoryName: 'Mock Category',
-            questionText: `E2E Mock Question ${i + 1}`,
+            questionText: `Mock Question ${i + 1}`,
             difficulty: 'EASY',
             questionType: 'SINGLE',
             options: [
@@ -64,8 +69,6 @@ export async function getAssessmentQuestions(
         return mockQuestions;
     }
     // ----------------------------
-
-    const targetCount = categoryIdOrMode === 'onboarding' ? 25 : limitCount;
 
     let query = supabase
         .from('questions')
@@ -131,20 +134,22 @@ export async function getAssessmentQuestions(
         ),
     }));
 
-    const easyQuestions = shuffleArray(allFormatted.filter((q) => q.difficulty === 'EASY'));
-    const mediumQuestions = shuffleArray(allFormatted.filter((q) => q.difficulty === 'MEDIUM'));
-    const hardQuestions = shuffleArray(allFormatted.filter((q) => q.difficulty === 'HARD'));
+    const easyPool = shuffleArray(allFormatted.filter((q) => q.difficulty === 'EASY'));
+    const mediumPool = shuffleArray(allFormatted.filter((q) => q.difficulty === 'MEDIUM'));
+    const hardPool = shuffleArray(allFormatted.filter((q) => q.difficulty === 'HARD'));
 
-    const easyTarget = Math.round(targetCount * 0.4);
-    const medTarget = Math.round(targetCount * 0.3);
-    const hardTarget = targetCount - easyTarget - medTarget;
+    // Preluăm numerele exacte de întrebări din configurare
+    const targetDistribution: DifficultyCount = isOnboarding
+        ? ASSESSMENT_CONFIG.onboardingDifficultyDistribution
+        : ASSESSMENT_CONFIG.difficultyDistribution[activeLevel] || ASSESSMENT_CONFIG.difficultyDistribution.JUNIOR;
 
     const selected: QuestionItem[] = [
-        ...easyQuestions.slice(0, easyTarget),
-        ...mediumQuestions.slice(0, medTarget),
-        ...hardQuestions.slice(0, hardTarget),
+        ...easyPool.slice(0, targetDistribution.EASY),
+        ...mediumPool.slice(0, targetDistribution.MEDIUM),
+        ...hardPool.slice(0, targetDistribution.HARD),
     ];
 
+    // Dacă o categorie are mai puține întrebări pe o dificultate anume, completăm din restul disponibile
     if (selected.length < targetCount) {
         const selectedIds = new Set(selected.map((q) => q.id));
         const remaining = shuffleArray(allFormatted.filter((q) => !selectedIds.has(q.id)));
