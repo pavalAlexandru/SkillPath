@@ -53,11 +53,15 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
         mockSupabase.from.mockReturnValue(mockSupabase);
         mockSupabase.insert.mockReturnValue(mockSupabase);
         mockSupabase.select.mockReturnValue(mockSupabase);
+        mockSupabase.single.mockReturnValue(mockSupabase);
+        mockSupabase.maybeSingle.mockReturnValue(mockSupabase);
         mockSupabase.update.mockReturnValue(mockSupabase);
         mockSupabase.eq.mockReturnValue(mockSupabase);
         mockSupabase.in.mockReturnValue(mockSupabase);
         mockSupabase.order.mockReturnValue(mockSupabase);
         mockSupabase.maybeSingle.mockResolvedValue({ data: { current_level: 'JUNIOR' }, error: null });
+
+        mockSupabase.maybeSingle.mockResolvedValue({ data: null, error: null });
 
         vi.mocked(createClient).mockResolvedValue(mockSupabase as unknown as Awaited<ReturnType<typeof createClient>>);
     });

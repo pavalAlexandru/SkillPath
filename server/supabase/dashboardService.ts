@@ -144,7 +144,7 @@ function calculateRealStreak(tests: CompletedAssessmentRow[]): number {
 export async function getStudentDashboardData(): Promise<DashboardData | null> {
     const supabase = await createClient();
 
-    // 1. Utilizator curent
+    // 1. Utilizator autentificat
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) return null;
 

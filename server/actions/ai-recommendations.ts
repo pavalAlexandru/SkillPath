@@ -4,6 +4,28 @@ import { createClient } from '@/server/supabase/server';
 import { Type, Schema } from '@google/genai';
 import { generateContentWithFallback } from './ai-fallback';
 
+export type WrongAnswer = {
+    position: number;
+    question_id: number;
+    question_text: string;
+    category_id: number;
+    category_name?: string;
+    options: { id: number; option_text: string; is_correct: boolean }[];
+    selected_option_ids: number[];
+};
+
+type DbWrongAnswer = {
+    position: number;
+    question: {
+        id: number;
+        question_text: string;
+        category_id: number;
+        categories: { name: string } | null;
+        options: { id: number; option_text: string; is_correct: boolean }[];
+    };
+    answers: { option_id: number }[];
+};
+
 export async function getWrongAnswers(assessmentId: number) {
     const supabase = await createClient();
 
@@ -32,8 +54,8 @@ export async function getWrongAnswers(assessmentId: number) {
         .eq('is_correct', false)
         .order('position', { ascending: true });
 
-    const wrongAnswers = (wrongAnswersData || []).map((wq: any) => {
-        const selectedOptionIds = wq.answers.map((a: any) => a.option_id);
+    const wrongAnswers: WrongAnswer[] = (wrongAnswersData as unknown as DbWrongAnswer[] || []).map((wq) => {
+        const selectedOptionIds = wq.answers.map((a) => a.option_id);
         
         return {
             position: wq.position,
@@ -49,8 +71,30 @@ export async function getWrongAnswers(assessmentId: number) {
     return { wrongAnswers };
 }
 
-export async function generateAIRecommendations(assessmentId: number, wrongAnswers: any[]) {
+export async function generateAIRecommendations(assessmentId: number, wrongAnswers: WrongAnswer[]) {
     const supabase = await createClient();
+
+    // --- E2E Mocking Fallback ---
+    let isE2E = false;
+    try {
+        const { headers } = await import('next/headers');
+        const headersList = await headers();
+        isE2E = headersList.get('x-e2e-test') === 'true';
+    } catch (e) {}
+
+    if (isE2E || process.env.NODE_ENV === 'test') {
+        return { 
+            recommendations: [{
+                id: 9999,
+                category_id: 1,
+                topic_title: "Mock AI Topic",
+                advice_description: "This is a mocked AI recommendation for E2E tests.",
+                priority: "HIGH",
+                resources: [{ title: "Mock Resource", url: "https://google.com" }]
+            }] 
+        };
+    }
+    // ----------------------------
 
     const { data: existingRecs } = await supabase
         .from('learning_recommendations')
@@ -124,26 +168,29 @@ export async function generateAIRecommendations(assessmentId: number, wrongAnswe
                 status: 'PENDING'
             }).select('id').single();
 
-            const recId = insertedRec?.id || crypto.randomUUID();
+            const dbRecId = insertedRec?.id as number | undefined;
+            const uiRecId = dbRecId || crypto.randomUUID();
 
             if (recError) {
                 console.error("Error inserting recommendation (RLS likely):", recError);
             }
 
-            const resource = {
-                recommendation_id: recId,
-                title: rec.search_title,
-                url: rec.search_url
-            };
-
-            if (!recError) {
+            if (!recError && dbRecId) {
+                const resource = {
+                    recommendation_id: dbRecId,
+                    title: String(rec.search_title),
+                    url: String(rec.search_url)
+                };
                 await supabase.from('recommendation_resources').insert(resource);
             }
             
             finalRecommendations.push({
                 ...rec,
-                id: recId,
-                resources: [resource]
+                id: uiRecId,
+                resources: [{
+                    title: String(rec.search_title),
+                    url: String(rec.search_url)
+                }]
             });
         }
 

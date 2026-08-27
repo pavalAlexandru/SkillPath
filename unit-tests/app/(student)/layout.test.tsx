@@ -3,13 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import StudentLayout from '@/app/(student)/layout';
 import { createClient } from '@/server/supabase/server';
+import { usePathname } from 'next/navigation';
 
 vi.mock('@/server/supabase/server', () => ({
     createClient: vi.fn(),
 }));
 
 vi.mock('next/navigation', () => ({
-    usePathname: () => '/dashboard',
+    usePathname: vi.fn(),
     useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
@@ -20,6 +21,7 @@ vi.mock('@/components/shared/LogoutButton', () => ({
 describe('StudentLayout Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(usePathname).mockReturnValue('/dashboard');
     });
 
     it('afișează emailul real al utilizatorului autentificat în Navbar pe rutele normale', async () => {
@@ -52,6 +54,8 @@ describe('StudentLayout Component', () => {
     });
 
     it('ascunde Navbar-ul complet atunci când utilizatorul este pe ruta de onboarding', async () => {
+        vi.mocked(usePathname).mockReturnValue('/assessment/onboarding');
+
         vi.mocked(createClient).mockResolvedValue({
             auth: {
                 getUser: vi.fn().mockResolvedValue({

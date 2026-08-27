@@ -72,6 +72,13 @@ export async function signUpWithEmail(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        role: role,
+      }
+    }
   });
   if (error) throw error;
   if (data.user?.identities && data.user.identities.length === 0) {
@@ -79,7 +86,7 @@ export async function signUpWithEmail(
   }
 
   if (data.user) {
-    const { error: profileError } = await supabase.from("profiles").insert({
+    const { error: profileError } = await supabase.from("profiles").upsert({
       id: data.user.id,
       email: email,
       first_name: firstName,
@@ -88,15 +95,12 @@ export async function signUpWithEmail(
     });
     
     if (profileError) {
-      if (profileError.code === '23505') {
-        throw new Error("Un cont cu acest email există deja.");
-      }
       console.error("Profile creation error", profileError);
       throw profileError;
     }
 
     if (role === "STUDENT") {
-      const { error: studentError } = await supabase.from("student_profiles").insert({
+      const { error: studentError } = await supabase.from("student_profiles").upsert({
         user_id: data.user.id,
         current_level: "JUNIOR",
       });
