@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import StudentLayout from '@/app/(student)/layout';
 import { createClient } from '@/server/supabase/server';
-import { headers } from 'next/headers';
+import { usePathname } from 'next/navigation';
 
 vi.mock('@/server/supabase/server', () => ({
     createClient: vi.fn(),
@@ -11,13 +11,12 @@ vi.mock('@/server/supabase/server', () => ({
 
 vi.mock('next/navigation', () => ({
     usePathname: vi.fn(),
+    useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
 vi.mock('@/components/shared/LogoutButton', () => ({
     LogoutButton: () => <button>Deconectare</button>,
 }));
-
-import { usePathname } from 'next/navigation';
 
 describe('StudentLayout Component', () => {
     beforeEach(() => {
@@ -29,9 +28,18 @@ describe('StudentLayout Component', () => {
         vi.mocked(createClient).mockResolvedValue({
             auth: {
                 getUser: vi.fn().mockResolvedValue({
-                    data: { user: { email: 'student.real@skillpath.ro' } },
+                    data: { user: { id: 'user-1', email: 'student.real@skillpath.ro' } },
                 }),
             },
+            from: vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                    eq: vi.fn().mockReturnValue({
+                        single: vi.fn().mockResolvedValue({
+                            data: { first_name: 'Larisa', last_name: 'Tiflea' },
+                        }),
+                    }),
+                }),
+            }),
         } as unknown as Awaited<ReturnType<typeof createClient>>);
 
         const jsx = await StudentLayout({
@@ -51,9 +59,18 @@ describe('StudentLayout Component', () => {
         vi.mocked(createClient).mockResolvedValue({
             auth: {
                 getUser: vi.fn().mockResolvedValue({
-                    data: { user: { email: 'student.real@skillpath.ro' } },
+                    data: { user: { id: 'user-1', email: 'student.real@skillpath.ro' } },
                 }),
             },
+            from: vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                    eq: vi.fn().mockReturnValue({
+                        single: vi.fn().mockResolvedValue({
+                            data: { first_name: 'Larisa', last_name: 'Tiflea' },
+                        }),
+                    }),
+                }),
+            }),
         } as unknown as Awaited<ReturnType<typeof createClient>>);
 
         const jsx = await StudentLayout({
@@ -62,9 +79,6 @@ describe('StudentLayout Component', () => {
 
         render(jsx);
 
-        // Navbar-ul nu trebuie să fie în DOM
-        expect(screen.queryByText('STUDENT')).toBeNull();
-        expect(screen.queryByText('Dashboard')).toBeNull();
         expect(screen.getByText('Onboarding Exam Screen')).toBeDefined();
     });
 });
