@@ -73,6 +73,7 @@ export async function signUpWithEmail(
     email,
     password,
     options: {
+      emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/api/auth/callback`,
       data: {
         first_name: firstName,
         last_name: lastName,
