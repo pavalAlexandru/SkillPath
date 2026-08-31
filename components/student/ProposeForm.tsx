@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { proposeQuestionAction } from '@/server/actions/proposals';
 import { CategoryRow } from '@/types/assesments';
@@ -18,6 +18,15 @@ export default function ProposeForm({ categories }: { categories: CategoryRow[] 
     ]);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [loading, setLoading] = useState(false);
+    const messageRef = useRef<HTMLDivElement>(null);
+
+    // Mesajul stă în capul formularului, care poate fi în afara ecranului
+    // după ce ai completat toate opțiunile — îl aducem în raza vizuală.
+    useEffect(() => {
+        if (message) {
+            messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [message]);
 
     const handleOptionChange = (index: number, text: string) => {
         const newOptions = [...options];
@@ -73,7 +82,7 @@ export default function ProposeForm({ categories }: { categories: CategoryRow[] 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {message && (
-                <div className={`p-4 rounded-md text-sm ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div ref={messageRef} className={`p-4 rounded-md text-sm ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                     {message.text}
                 </div>
             )}

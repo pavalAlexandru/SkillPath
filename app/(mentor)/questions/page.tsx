@@ -101,6 +101,17 @@ export default async function MentorQuestionsPage({
     const fromIndex = (currentPage - 1) * PAGE_SIZE;
     const paginatedQuestions = listaSortata.slice(fromIndex, fromIndex + PAGE_SIZE);
 
+    // Întrebările din pagina curentă, împărțite pe categorii (alfabetic).
+    // Sortarea aleasă din antet se aplică în interiorul fiecărei categorii.
+    const grupePeCategorie = new Map<string, typeof paginatedQuestions>();
+    for (const q of paginatedQuestions) {
+        const numeCategorie = q.categories?.name ?? 'Fără categorie';
+        const grup = grupePeCategorie.get(numeCategorie) ?? [];
+        grup.push(q);
+        grupePeCategorie.set(numeCategorie, grup);
+    }
+    const categoriiGrupate = [...grupePeCategorie.entries()].sort(([a], [b]) => a.localeCompare(b));
+
     const intrebareEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
     const areFiltre = search !== '' || category !== '' || difficulty !== '';
 
@@ -177,11 +188,6 @@ export default async function MentorQuestionsPage({
                             </Link>
                         </th>
                         <th className="whitespace-nowrap px-6 py-3">
-                            <Link href={buildUrl(1, 'category')} scroll={false} className="hover:text-slate-800">
-                                Categorie ↕
-                            </Link>
-                        </th>
-                        <th className="whitespace-nowrap px-6 py-3">
                             <Link href={buildUrl(1, 'difficulty')} scroll={false} className="hover:text-slate-800">
                                 Dificultate ↕
                             </Link>
@@ -191,13 +197,21 @@ export default async function MentorQuestionsPage({
                         <th className="px-6 py-3 text-right">Acțiuni</th>
                     </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
-                    {paginatedQuestions.map((q) => (
+                    {categoriiGrupate.map(([numeCategorie, intrebari]) => (
+                    <tbody key={numeCategorie} className="divide-y divide-slate-100">
+                    <tr className="border-y border-slate-200 bg-slate-50">
+                        <th colSpan={5} className="px-6 py-2 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
+                            {numeCategorie}
+                            <span className="ml-2 font-medium normal-case tracking-normal text-slate-400">
+                                {intrebari.length} {intrebari.length === 1 ? 'întrebare' : 'întrebări'}
+                            </span>
+                        </th>
+                    </tr>
+                    {intrebari.map((q) => (
                         <tr key={q.id} className="hover:bg-slate-50">
                             <td className="px-6 py-4 font-medium text-slate-900 max-w-md truncate">
                                 {q.question_text}
                             </td>
-                            <td className="px-6 py-4">{q.categories?.name ?? '—'}</td>
                             <td className="px-6 py-4">
                                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${DIFICULTATE_CULOARE[q.difficulty]}`}>
                                     {DIFICULTATE_LABEL[q.difficulty]}
@@ -241,6 +255,7 @@ export default async function MentorQuestionsPage({
                         </tr>
                     ))}
                     </tbody>
+                    ))}
                 </table>
 
                 {totalCount === 0 && (

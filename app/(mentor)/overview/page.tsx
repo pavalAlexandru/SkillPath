@@ -13,11 +13,11 @@ export default async function  MentorOverviewPage(){
     const [propuneri, intrebari, studenti, evaluari,zoneSlabe]= await Promise.all([
         supabase
             .from('questions')
-            .select('*',{count:' exact', head:true})
+            .select('*',{count:'exact', head:true})
             .eq('status', 'PENDING'),
         supabase
         .from('questions')
-        .select('*',{count:' exact', head:true})
+        .select('*',{count:'exact', head:true})
         .eq('status', 'APPROVED')
         .eq('is_active', true),
         supabase
