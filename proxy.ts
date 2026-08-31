@@ -48,7 +48,6 @@ export async function proxy(request: NextRequest) {
 
   const isStudentPath = [
     "/dashboard",
-    "/profile",
     "/propose",
     "/assessment",
   ].some((p) => path.startsWith(p));
