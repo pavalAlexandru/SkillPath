@@ -1,6 +1,23 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/server/supabase/server';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Cine e deja autentificat merge direct la panoul lui.
+  if (user) {
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    const isMentor = profile?.role?.trim().toLowerCase() === 'mentor';
+    redirect(isMentor ? '/overview' : '/dashboard');
+  }
+
   return (
       <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative overflow-hidden">
         {/* Efect vizual fundal */}

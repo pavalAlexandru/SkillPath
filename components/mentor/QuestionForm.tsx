@@ -68,7 +68,7 @@ export function QuestionForm({
                     minLength={5}
                     rows={2}
                     defaultValue={question?.question_text}
-                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
             </div>
 
@@ -79,7 +79,7 @@ export function QuestionForm({
                         name="category_id"
                         required
                         defaultValue={question?.category_id}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     >
                         {categories.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
@@ -92,7 +92,7 @@ export function QuestionForm({
                     <select
                         name="difficulty"
                         defaultValue={question?.difficulty ?? 'EASY'}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     >
                         <option value="EASY">Ușor</option>
                         <option value="MEDIUM">Mediu</option>
@@ -106,7 +106,7 @@ export function QuestionForm({
                         name="question_type"
                         value={tip}
                         onChange={(e) => setTip(e.target.value as 'SINGLE' | 'MULTIPLE')}
-                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     >
                         <option value="SINGLE">Un singur răspuns corect</option>
                         <option value="MULTIPLE">Mai multe răspunsuri corecte</option>
@@ -130,7 +130,7 @@ export function QuestionForm({
                             onChange={(e) => schimbaText(index, e.target.value)}
                             required
                             placeholder={`Varianta ${index + 1}`}
-                            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         {optiuni.length > 2 && (
                             <button

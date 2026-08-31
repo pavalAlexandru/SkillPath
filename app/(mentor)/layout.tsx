@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/shared/Navbar';
 import { createClient } from '@/server/supabase/server';
+import { mentorNavItems } from '@/lib/navigation';
 
 export default async function MentorLayout({
                                                children,
@@ -9,21 +10,27 @@ export default async function MentorLayout({
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const navItems = [
-        { label: 'Dashboard', href: '/overview' },
-        { label: 'Categorii', href: '/categories' },
-        { label: 'Catalog Întrebări', href: '/questions' },
-        { label: 'Propuneri Studenți', href: '/proposals' },
-        { label: 'Studenți', href: '/students' },
-        { label: 'Setări', href: '/settings' },
-    ];
+    let userName = '';
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profile) {
+            userName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        }
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Navbar
                 roleBadge="MENTOR"
+                userName={userName}
                 userEmail={user?.email || 'Nespecificat'}
-                items={navItems}
+                items={mentorNavItems}
             />
             <main className="mx-auto w-full max-w-7xl flex-1 p-6">
                 {children}
