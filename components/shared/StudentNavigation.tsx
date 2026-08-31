@@ -22,6 +22,7 @@ export function StudentNavigation({ userName, userEmail }: StudentNavigationProp
         { label: 'Teste', href: '/assessment' },
         { label: 'Propune Întrebare', href: '/propose' },
         { label: 'Profil & Progres', href: '/profile' },
+        { label: 'Setări', href: '/settings' },
     ];
 
     return (
