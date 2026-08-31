@@ -117,7 +117,7 @@ export default async function CategoriesPage({
                             required
                             minLength={2}
                             defaultValue={editing?.name ?? ''}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
 
@@ -126,13 +126,13 @@ export default async function CategoriesPage({
                         <input
                             name="description"
                             defaultValue={editing?.description ?? ''}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
                     <div className="min-w-40">
                         <label className="block text-sm font-medium text-slate-700">Nivel</label>
                         <select name="level" defaultValue={editing?.level ?? 'JUNIOR'}
-                                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="JUNIOR">Junior</option>
                             <option value="MIDDLE">Middle</option>
                             <option value="SENIOR">Senior</option>
@@ -163,7 +163,7 @@ export default async function CategoriesPage({
                             name="search"
                             defaultValue={search}
                             placeholder="Nume categorie..."
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
 
@@ -172,7 +172,7 @@ export default async function CategoriesPage({
                         <select
                             name="status"
                             defaultValue={status}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             <option value="all">Toate</option>
                             <option value="active">Doar active</option>
@@ -185,7 +185,7 @@ export default async function CategoriesPage({
                         <select
                             name="level"
                             defaultValue={level}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             <option value="">Toate</option>
                             <option value="JUNIOR">Junior</option>

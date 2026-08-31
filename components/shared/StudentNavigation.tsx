@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/shared/Navbar';
+import { studentNavItems } from '@/lib/navigation';
 
 interface StudentNavigationProps {
     userName?: string;
@@ -17,20 +18,12 @@ export function StudentNavigation({ userName, userEmail }: StudentNavigationProp
         return null;
     }
 
-    const navItems = [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Teste', href: '/assessment' },
-        { label: 'Propune Întrebare', href: '/propose' },
-        { label: 'Profil & Progres', href: '/profile' },
-        { label: 'Setări', href: '/settings' },
-    ];
-
     return (
         <Navbar
             roleBadge="STUDENT"
             userName={userName}
             userEmail={userEmail}
-            items={navItems}
+            items={studentNavItems}
         />
     );
 }

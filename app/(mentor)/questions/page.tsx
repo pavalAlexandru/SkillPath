@@ -117,7 +117,7 @@ export default async function MentorQuestionsPage({
                             name="search"
                             defaultValue={search}
                             placeholder="Caută în enunț..."
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
 
@@ -126,7 +126,7 @@ export default async function MentorQuestionsPage({
                         <select
                             name="category"
                             defaultValue={category}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             <option value="">Toate</option>
                             {categories?.map((c) => (
@@ -140,7 +140,7 @@ export default async function MentorQuestionsPage({
                         <select
                             name="difficulty"
                             defaultValue={difficulty}
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             <option value="">Toate</option>
                             <option value="EASY">Ușor</option>

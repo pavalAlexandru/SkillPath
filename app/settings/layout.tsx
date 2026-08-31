@@ -2,14 +2,7 @@ import React from 'react';
 import { createClient } from '@/server/supabase/server';
 import { Navbar } from '@/components/shared/Navbar';
 import { StudentNavigation } from '@/components/shared/StudentNavigation';
-
-const mentorNavItems = [
-    { label: 'Dashboard', href: '/overview' },
-    { label: 'Categorii', href: '/categories' },
-    { label: 'Catalog Întrebări', href: '/questions' },
-    { label: 'Propuneri Studenți', href: '/proposals' },
-    { label: 'Studenți', href: '/students' },
-];
+import { mentorNavItems } from '@/lib/navigation';
 
 export default async function SettingsLayout({
                                                  children,
@@ -21,19 +14,22 @@ export default async function SettingsLayout({
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, first_name, last_name')
         .eq('id', user?.id ?? '')
         .maybeSingle();
 
     const isMentor = profile?.role?.trim().toLowerCase() === 'mentor';
     const userEmail = user?.email || 'Nespecificat';
+    const userName = profile
+        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+        : '';
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             {isMentor ? (
-                <Navbar roleBadge="MENTOR" userEmail={userEmail} items={mentorNavItems} />
+                <Navbar roleBadge="MENTOR" userName={userName} userEmail={userEmail} items={mentorNavItems} />
             ) : (
-                <StudentNavigation userEmail={userEmail} />
+                <StudentNavigation userName={userName} userEmail={userEmail} />
             )}
             <main className="mx-auto w-full max-w-7xl flex-1 p-6">
                 {children}
