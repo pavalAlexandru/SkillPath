@@ -2,6 +2,7 @@
 
 import { createClient } from '@/server/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { notifyQuestionOutcome } from './notifications';
 
 export async function approveProposalAction(formData: FormData): Promise<void> {
     const questionId = Number(formData.get('questionId'));
@@ -16,6 +17,8 @@ export async function approveProposalAction(formData: FormData): Promise<void> {
 
     if (error) {
         console.error('Error approving proposal:', error);
+    } else {
+        await notifyQuestionOutcome(questionId, 'APPROVED');
     }
     
     revalidatePath('/proposals');
@@ -24,6 +27,10 @@ export async function approveProposalAction(formData: FormData): Promise<void> {
 export async function rejectProposalAction(formData: FormData): Promise<void> {
     const questionId = Number(formData.get('questionId'));
     if (!questionId) return;
+
+    // Notify the user BEFORE deleting the question from the database
+    // so we can still look up who created it and the question text.
+    await notifyQuestionOutcome(questionId, 'REJECTED');
 
     const supabase = await createClient();
     

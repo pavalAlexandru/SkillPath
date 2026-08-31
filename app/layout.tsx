@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { NotificationWidget } from "@/components/shared/NotificationWidget";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,7 +22,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 rel="stylesheet"
             />
         </head>
-        <body className="min-h-full flex flex-col font-sans">{children}</body>
+        <body className="min-h-full flex flex-col font-sans">
+            {children}
+            <NotificationWidget />
+        </body>
         </html>
     );
 }
