@@ -25,10 +25,12 @@ const ORDINE_DIFICULTATE: Record<string, number> = {
     HARD: 3,
 };
 
+const PAGE_SIZE = 10;
+
 export default async function MentorQuestionsPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string }>;
+                                                      searchParams,
+                                                  }: {
+    searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string; page?: string }>;
 }) {
     const params = await searchParams;
     const search = params.search ?? '';
@@ -36,14 +38,17 @@ export default async function MentorQuestionsPage({
     const difficulty = params.difficulty ?? '';
     const sort = params.sort ?? '';
     const editId = params.edit ? Number(params.edit) : null;
+    const currentPage = Math.max(1, Number(params.page ?? '1') || 1);
 
-    // Construiește linkul de sortare, păstrând filtrele active de căutare/categorie/dificultate.
-    function sortLink(field: string) {
+    function buildUrl(newPage: number, newSort?: string) {
         const qs = new URLSearchParams();
         if (search) qs.set('search', search);
         if (category) qs.set('category', category);
         if (difficulty) qs.set('difficulty', difficulty);
-        qs.set('sort', field);
+        if (newSort !== undefined ? newSort : sort) {
+            qs.set('sort', newSort !== undefined ? newSort : sort);
+        }
+        if (newPage > 1) qs.set('page', String(newPage));
         return `/questions?${qs.toString()}`;
     }
 
@@ -51,8 +56,7 @@ export default async function MentorQuestionsPage({
 
     let query = supabase
         .from('questions')
-        .select('*, categories(name), question_options(id, option_text, is_correct)')
-        .order('created_at', { ascending: false });
+        .select('*, categories(name), question_options(id, option_text, is_correct)');
 
     if (search) {
         query = query.ilike('question_text', `%${search}%`);
@@ -79,7 +83,7 @@ export default async function MentorQuestionsPage({
         );
     }
 
-    const listaOrdonata = [...(questions ?? [])].sort((a, b) => {
+    const listaSortata = [...(questions ?? [])].sort((a, b) => {
         if (sort === 'category') {
             return (a.categories?.name ?? '').localeCompare(b.categories?.name ?? '');
         }
@@ -89,8 +93,13 @@ export default async function MentorQuestionsPage({
         if (sort === 'name') {
             return a.question_text.localeCompare(b.question_text);
         }
-        return 0;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
+
+    const totalCount = listaSortata.length;
+    const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
+    const fromIndex = (currentPage - 1) * PAGE_SIZE;
+    const paginatedQuestions = listaSortata.slice(fromIndex, fromIndex + PAGE_SIZE);
 
     const intrebareEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
     const areFiltre = search !== '' || category !== '' || difficulty !== '';
@@ -151,7 +160,7 @@ export default async function MentorQuestionsPage({
 
                     <Button type="submit" variant="secondary">Filtrează</Button>
                     {areFiltre && (
-                        <Link href="/questions" className="px-2 py-2 text-sm text-slate-500 hover:underline">
+                        <Link href="/questions" scroll={false} className="px-2 py-2 text-sm text-slate-500 hover:underline">
                             Resetează
                         </Link>
                     )}
@@ -163,17 +172,17 @@ export default async function MentorQuestionsPage({
                     <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
                     <tr>
                         <th className="whitespace-nowrap px-6 py-3">
-                            <Link href={sortLink('name')} className="hover:text-slate-800">
+                            <Link href={buildUrl(1, 'name')} scroll={false} className="hover:text-slate-800">
                                 Enunț ↕
                             </Link>
                         </th>
                         <th className="whitespace-nowrap px-6 py-3">
-                            <Link href={sortLink('category')} className="hover:text-slate-800">
+                            <Link href={buildUrl(1, 'category')} scroll={false} className="hover:text-slate-800">
                                 Categorie ↕
                             </Link>
                         </th>
                         <th className="whitespace-nowrap px-6 py-3">
-                            <Link href={sortLink('difficulty')} className="hover:text-slate-800">
+                            <Link href={buildUrl(1, 'difficulty')} scroll={false} className="hover:text-slate-800">
                                 Dificultate ↕
                             </Link>
                         </th>
@@ -183,21 +192,19 @@ export default async function MentorQuestionsPage({
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                    {listaOrdonata.map((q) => (
+                    {paginatedQuestions.map((q) => (
                         <tr key={q.id} className="hover:bg-slate-50">
-                            <td className="px-6 py-4 font-medium text-slate-900">
+                            <td className="px-6 py-4 font-medium text-slate-900 max-w-md truncate">
                                 {q.question_text}
                             </td>
                             <td className="px-6 py-4">{q.categories?.name ?? '—'}</td>
                             <td className="px-6 py-4">
-                                    <span
-                                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${DIFICULTATE_CULOARE[q.difficulty]}`}
-                                    >
-                                        {DIFICULTATE_LABEL[q.difficulty]}
-                                    </span>
+                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${DIFICULTATE_CULOARE[q.difficulty]}`}>
+                                    {DIFICULTATE_LABEL[q.difficulty]}
+                                </span>
                             </td>
                             <td className="px-6 py-4">
-                                {q.question_options.length} ({q.question_options.filter((o) => o.is_correct).length} corecte)
+                                {q.question_options.length} ({q.question_options.filter((o: any) => o.is_correct).length} corecte)
                             </td>
                             <td className="px-6 py-4">
                                 {q.is_active ? (
@@ -212,7 +219,7 @@ export default async function MentorQuestionsPage({
                             </td>
                             <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-3">
-                                    <Link href={`/questions?edit=${q.id}`} className="text-indigo-600 hover:underline">
+                                    <Link href={`/questions?edit=${q.id}`} scroll={false} className="text-indigo-600 hover:underline">
                                         Editează
                                     </Link>
                                     <form action={toggleQuestionActive} className="inline">
@@ -236,10 +243,49 @@ export default async function MentorQuestionsPage({
                     </tbody>
                 </table>
 
-                {listaOrdonata.length === 0 && (
+                {totalCount === 0 && (
                     <p className="px-6 py-8 text-center text-sm text-slate-500">
                         {areFiltre ? 'Nicio întrebare nu corespunde filtrelor.' : 'Nu există nicio întrebare încă.'}
                     </p>
+                )}
+
+                {/* Paginare cu scroll={false} */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-slate-200 bg-white px-6 py-4">
+                        <p className="text-xs text-slate-500">
+                            Afișez <span className="font-semibold text-slate-800">{fromIndex + 1}</span> -{' '}
+                            <span className="font-semibold text-slate-800">
+                                {Math.min(fromIndex + PAGE_SIZE, totalCount)}
+                            </span> din <span className="font-semibold text-slate-800">{totalCount}</span> întrebări
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href={buildUrl(currentPage - 1)}
+                                scroll={false}
+                                className={`rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold ${
+                                    currentPage <= 1
+                                        ? 'pointer-events-none opacity-40 bg-slate-50 text-slate-400'
+                                        : 'bg-white text-slate-700 hover:bg-slate-50 shadow-xs'
+                                }`}
+                            >
+                                ← Înapoi
+                            </Link>
+                            <span className="px-2 text-xs font-bold text-slate-600">
+                                {currentPage} / {totalPages}
+                            </span>
+                            <Link
+                                href={buildUrl(currentPage + 1)}
+                                scroll={false}
+                                className={`rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold ${
+                                    currentPage >= totalPages
+                                        ? 'pointer-events-none opacity-40 bg-slate-50 text-slate-400'
+                                        : 'bg-white text-slate-700 hover:bg-slate-50 shadow-xs'
+                                }`}
+                            >
+                                Înainte →
+                            </Link>
+                        </div>
+                    </div>
                 )}
             </Card>
         </div>
