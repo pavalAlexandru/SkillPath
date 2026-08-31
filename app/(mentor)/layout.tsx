@@ -15,6 +15,7 @@ export default async function MentorLayout({
         { label: 'Catalog Întrebări', href: '/questions' },
         { label: 'Propuneri Studenți', href: '/proposals' },
         { label: 'Studenți', href: '/students' },
+        { label: 'Setări', href: '/settings' },
     ];
 
     return (

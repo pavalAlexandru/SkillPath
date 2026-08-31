@@ -60,8 +60,9 @@ export async function proxy(request: NextRequest) {
     "/categories",
     "/students",
   ].some((p) => path.startsWith(p));
+    const isSharedPath = path.startsWith("/settings");
 
-  const isProtectedPath = isStudentPath || isMentorPath;
+    const isProtectedPath = isStudentPath || isMentorPath || isSharedPath;
 
   if (!user && isProtectedPath) {
     return NextResponse.redirect(new URL("/login", request.url));

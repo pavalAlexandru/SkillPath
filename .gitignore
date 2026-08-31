@@ -106,4 +106,5 @@ yarn-error.log*
 pnpm-debug.log*
 .turbo/
 .claude/
-supabase/.temp/
+supabase/.temp/*.pid
+*.pid
