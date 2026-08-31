@@ -145,7 +145,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
         return (
             <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
                 <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
-                <h2 className="text-2xl font-bold text-slate-900">Se salvează rezultatele...</h2>
+                <h2 className="text-base font-bold text-slate-900">Se salvează rezultatele...</h2>
                 <p className="text-slate-500">Calculăm scorul și pregătim detaliile, te rugăm să aștepți.</p>
             </Card>
         );

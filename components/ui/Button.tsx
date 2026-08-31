@@ -11,7 +11,7 @@ const variantStyles: Record<ButtonVariant, string> = {
     secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 focus:ring-slate-400',
     outline: 'border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-50 focus:ring-slate-400',
     danger: 'bg-rose-600 text-white hover:bg-rose-500 focus:ring-rose-500',
-    success: 'bg-green-600 text-white hover:bg-green-500 focus:ring-green-500',
+    success: 'bg-emerald-600 text-white hover:bg-emerald-500 focus:ring-emerald-500',
 };
 
 export function Button({

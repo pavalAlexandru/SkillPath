@@ -38,7 +38,7 @@ export default async function AssessmentPage({
     if (!questions || questions.length === 0) {
         return (
             <div className="mx-auto max-w-xl p-8 text-center bg-white rounded-xl border border-slate-200 space-y-3">
-                <h2 className="text-lg font-bold text-slate-900">Nu există întrebări active</h2>
+                <h2 className="text-base font-bold text-slate-900">Nu există întrebări active</h2>
                 <p className="text-sm text-slate-500">
                     Nu s-au găsit întrebări aprobate în baza de date pentru nivelul {effectiveLevel}.
                 </p>

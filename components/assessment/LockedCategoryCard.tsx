@@ -28,7 +28,7 @@ export function LockedCategoryCard({
                 </div>
 
                 <div>
-                    <h3 className="text-base font-semibold text-slate-700 flex items-center gap-1.5">
+                    <h3 className="text-base font-bold text-slate-700 flex items-center gap-1.5">
                         🔒 {title}
                     </h3>
                     <p className="mt-1 text-xs text-slate-400 leading-relaxed">

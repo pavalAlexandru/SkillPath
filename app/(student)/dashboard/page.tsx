@@ -68,7 +68,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-black text-slate-900">Salut, {data.firstName}!</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">Salut, {data.firstName}!</h1>
                         <span className="rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-bold tracking-wider text-indigo-700 uppercase">
                             {data.level}
                         </span>
