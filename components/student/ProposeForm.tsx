@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { proposeQuestionAction } from '@/server/actions/proposals';
 import { CategoryRow } from '@/types/assesments';
@@ -18,6 +18,13 @@ export default function ProposeForm({ categories }: { categories: CategoryRow[] 
     ]);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [loading, setLoading] = useState(false);
+    const messageRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (message) {
+            messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [message]);
 
     const handleOptionChange = (index: number, text: string) => {
         const newOptions = [...options];
@@ -77,6 +84,7 @@ export default function ProposeForm({ categories }: { categories: CategoryRow[] 
         <form onSubmit={handleSubmit} className="space-y-6">
             {message && (
                 <div
+                    ref={messageRef}
                     className={`rounded-xl border p-4 text-xs font-bold leading-relaxed ${
                         message.type === 'success'
                             ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300'

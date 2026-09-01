@@ -8,11 +8,11 @@ interface LockedCategoryCardProps {
 }
 
 export function LockedCategoryCard({
-                                       title,
-                                       description,
-                                       levelBadge,
-                                       unlockRequirement,
-                                   }: LockedCategoryCardProps) {
+    title,
+    description,
+    levelBadge,
+    unlockRequirement,
+}: LockedCategoryCardProps) {
     return (
         <div className="flex flex-col justify-between rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/60 p-6 opacity-75 backdrop-blur-md transition-all dark:border-slate-800/80 dark:bg-slate-900/40">
             <div className="space-y-4">

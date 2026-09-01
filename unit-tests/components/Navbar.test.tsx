@@ -18,7 +18,7 @@ describe('Unit Test - <Navbar />', () => {
     const defaultItems = [
         { label: 'Dashboard', href: '/dashboard' },
         { label: 'Teste', href: '/assessment' },
-        { label: 'Profil & Progres', href: '/profile' },
+        { label: 'Setări', href: '/settings' },
     ];
 
     it('randează numele utilizatorului și badge-ul de rol', () => {

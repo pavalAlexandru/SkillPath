@@ -142,7 +142,7 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
 
     if (isSubmitting) {
         return (
-            <Card className="mx-auto mt-8 max-w-2xl space-y-6 border border-slate-200/80 bg-white/85 p-12 text-center shadow-lg backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/80">
+            <Card className="mx-auto mt-8 max-w-2xl space-y-6 border border-slate-200/80 bg-white/85 p-12 text-center shadow-lg backdrop-blur-xl animate-in fade-in zoom-in duration-300 dark:border-slate-800/80 dark:bg-slate-900/80">
                 <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent dark:border-indigo-400 dark:border-t-transparent"></div>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Se salvează rezultatele...</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Calculăm scorul și pregătim detaliile, te rugăm să aștepți.</p>

@@ -377,7 +377,7 @@ export default async function DashboardPage() {
                         <div className="space-y-1.5">
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500"></span> Ușor (Easy)
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Ușor (Easy)
                                 </span>
                                 <span className="text-slate-900 dark:text-white">{data.difficultyAccuracy.easy}%</span>
                             </div>
@@ -393,7 +393,7 @@ export default async function DashboardPage() {
                         <div className="space-y-1.5">
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                                    <span className="h-2 w-2 rounded-full bg-amber-500"></span> Mediu (Medium)
+                                    <span className="h-2 w-2 rounded-full bg-amber-500" /> Mediu (Medium)
                                 </span>
                                 <span className="text-slate-900 dark:text-white">{data.difficultyAccuracy.medium}%</span>
                             </div>
@@ -409,7 +409,7 @@ export default async function DashboardPage() {
                         <div className="space-y-1.5">
                             <div className="flex justify-between text-xs font-bold">
                                 <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                                    <span className="h-2 w-2 rounded-full bg-rose-500"></span> Dificil (Hard)
+                                    <span className="h-2 w-2 rounded-full bg-rose-500" /> Dificil (Hard)
                                 </span>
                                 <span className="text-slate-900 dark:text-white">{data.difficultyAccuracy.hard}%</span>
                             </div>

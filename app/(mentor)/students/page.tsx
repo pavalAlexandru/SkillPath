@@ -7,7 +7,7 @@ import { createClient } from '@/server/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-const ITEMS_PER_PAGE = 10;
+const PAGE_SIZE = 10;
 
 const NIVEL_STYLES: Record<string, string> = {
     JUNIOR: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60',
@@ -22,21 +22,23 @@ const ORDINE_NIVEL: Record<string, number> = {
 };
 
 export default async function StudentsPage({
-                                               searchParams,
-                                           }: {
+    searchParams,
+}: {
     searchParams: Promise<{ search?: string; level?: string; sort?: string; page?: string }>;
 }) {
     const params = await searchParams;
     const search = params.search ?? '';
     const level = params.level ?? '';
     const sort = params.sort ?? '';
-    const currentPage = Math.max(1, Number(params.page ?? '1'));
+    const currentPage = Math.max(1, Number(params.page ?? '1') || 1);
 
-    function createUrl(newPage: number, newSort?: string) {
+    function buildUrl(newPage: number, newSort?: string) {
         const qs = new URLSearchParams();
         if (search) qs.set('search', search);
         if (level) qs.set('level', level);
-        if (newSort || sort) qs.set('sort', newSort || sort);
+        if (newSort !== undefined ? newSort : sort) {
+            qs.set('sort', newSort !== undefined ? newSort : sort);
+        }
         if (newPage > 1) qs.set('page', String(newPage));
         return `/students?${qs.toString()}`;
     }
@@ -86,7 +88,7 @@ export default async function StudentsPage({
         statisticiPerStudent.set(a.user_id, curent);
     }
 
-    const listaOrdonata = [...dupaNivel].sort((a, b) => {
+    const listaSortata = [...dupaNivel].sort((a, b) => {
         if (sort === 'level') {
             const nivelA = a.student_profiles?.current_level ?? '';
             const nivelB = b.student_profiles?.current_level ?? '';
@@ -100,12 +102,13 @@ export default async function StudentsPage({
         return 0;
     });
 
-    const totalItems = listaOrdonata.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
-    const paginatedStudents = listaOrdonata.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    const totalCount = listaSortata.length;
+    const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
+    const fromIndex = (currentPage - 1) * PAGE_SIZE;
+    const paginatedStudents = listaSortata.slice(fromIndex, fromIndex + PAGE_SIZE);
 
     const areFiltre = search !== '' || level !== '';
-    const studentiActivi = listaOrdonata.filter((s) => s.is_active).length;
+    const studentiActivi = listaSortata.filter((s) => s.is_active).length;
     const scorMediuGeneral = (evaluariFinalizate ?? []).length
         ? Math.round(
             (evaluariFinalizate ?? []).reduce((acc, a) => acc + (a.total_score ?? 0), 0) /
@@ -126,7 +129,7 @@ export default async function StudentsPage({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Card className="border border-slate-200/80 bg-white/80 p-5 backdrop-blur-md shadow-xs dark:border-slate-800/80 dark:bg-slate-900/80">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total studenți</p>
-                    <p className="mt-1 text-3xl font-black text-slate-900 dark:text-white">{listaOrdonata.length}</p>
+                    <p className="mt-1 text-3xl font-black text-slate-900 dark:text-white">{totalCount}</p>
                 </Card>
                 <Card className="border border-slate-200/80 bg-white/80 p-5 backdrop-blur-md shadow-xs dark:border-slate-800/80 dark:bg-slate-900/80">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Studenți activi</p>
@@ -149,7 +152,7 @@ export default async function StudentsPage({
                             name="search"
                             defaultValue={search}
                             placeholder="Nume sau email..."
-                            className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
+                            className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500"
                         />
                     </div>
 
@@ -169,7 +172,7 @@ export default async function StudentsPage({
 
                     <Button type="submit" variant="secondary" className="py-2.5 font-bold">Filtrează</Button>
                     {areFiltre && (
-                        <Link href="/students" className="px-2 py-2 text-sm font-semibold text-slate-500 hover:underline dark:text-slate-400">
+                        <Link href="/students" scroll={false} className="px-2 py-2 text-sm font-semibold text-slate-500 hover:underline dark:text-slate-400">
                             Resetează
                         </Link>
                     )}
@@ -184,12 +187,12 @@ export default async function StudentsPage({
                         <th className="px-6 py-3.5">Nume</th>
                         <th className="px-6 py-3.5">Email</th>
                         <th className="whitespace-nowrap px-6 py-3.5">
-                            <Link href={createUrl(1, 'level')} className="hover:text-slate-900 dark:hover:text-white">
+                            <Link href={buildUrl(1, 'level')} scroll={false} className="hover:text-slate-900 dark:hover:text-white">
                                 Nivel ↕
                             </Link>
                         </th>
                         <th className="whitespace-nowrap px-6 py-3.5">
-                            <Link href={createUrl(1, 'assessments')} className="hover:text-slate-900 dark:hover:text-white">
+                            <Link href={buildUrl(1, 'assessments')} scroll={false} className="hover:text-slate-900 dark:hover:text-white">
                                 Evaluări ↕
                             </Link>
                         </th>
@@ -208,7 +211,7 @@ export default async function StudentsPage({
                         return (
                             <tr key={s.id} className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                                 <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">
-                                    <Link href={`/students/${s.id}`} className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400">
+                                    <Link href={`/students/${s.id}`} scroll={false} className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400">
                                         {s.first_name} {s.last_name}
                                     </Link>
                                 </td>
@@ -240,7 +243,7 @@ export default async function StudentsPage({
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end gap-4">
+                                    <div className="flex items-center justify-end gap-3">
                                         <form action={toggleStudentActive} className="inline">
                                             <input type="hidden" name="id" value={s.id} />
                                             <input type="hidden" name="is_active" value={String(s.is_active)} />
@@ -267,37 +270,47 @@ export default async function StudentsPage({
                     </tbody>
                 </table>
 
-                {listaOrdonata.length === 0 && (
-                    <p className="px-6 py-10 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
+                {totalCount === 0 && (
+                    <p className="px-6 py-8 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
                         {areFiltre ? 'Niciun student nu corespunde filtrelor.' : 'Nu există niciun student încă.'}
                     </p>
                 )}
 
                 {/* Bară de Paginare */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-6 py-3.5 dark:border-slate-800 dark:bg-slate-950/40">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            Pagina <strong className="text-slate-900 dark:text-white">{currentPage}</strong> din{' '}
-                            <strong className="text-slate-900 dark:text-white">{totalPages}</strong> ({totalItems} studenți)
-                        </span>
-
+                    <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950/40">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Afișez <span className="font-bold text-slate-900 dark:text-white">{fromIndex + 1}</span> -{' '}
+                            <span className="font-bold text-slate-900 dark:text-white">
+                                {Math.min(fromIndex + PAGE_SIZE, totalCount)}
+                            </span> din <span className="font-bold text-slate-900 dark:text-white">{totalCount}</span> studenți
+                        </p>
                         <div className="flex items-center gap-2">
-                            {currentPage > 1 && (
-                                <Link
-                                    href={createUrl(currentPage - 1)}
-                                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                >
-                                    ← Anterior
-                                </Link>
-                            )}
-                            {currentPage < totalPages && (
-                                <Link
-                                    href={createUrl(currentPage + 1)}
-                                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                >
-                                    Următor →
-                                </Link>
-                            )}
+                            <Link
+                                href={buildUrl(currentPage - 1)}
+                                scroll={false}
+                                className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                                    currentPage <= 1
+                                        ? 'pointer-events-none opacity-40 border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-600'
+                                        : 'border-slate-200 bg-white text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                ← Înapoi
+                            </Link>
+                            <span className="px-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                {currentPage} / {totalPages}
+                            </span>
+                            <Link
+                                href={buildUrl(currentPage + 1)}
+                                scroll={false}
+                                className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+                                    currentPage >= totalPages
+                                        ? 'pointer-events-none opacity-40 border-slate-200 bg-slate-50 text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-600'
+                                        : 'border-slate-200 bg-white text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                Înainte →
+                            </Link>
                         </div>
                     </div>
                 )}

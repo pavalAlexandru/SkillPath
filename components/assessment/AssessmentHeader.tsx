@@ -18,13 +18,13 @@ const DIFICULTATE_CULOARE: Record<string, string> = {
 };
 
 export function AssessmentHeader({
-                                     assessmentId,
-                                     currentIndex,
-                                     totalQuestions,
-                                     difficulty,
-                                     categoryName,
-                                     isMultiple,
-                                 }: AssessmentHeaderProps) {
+    assessmentId,
+    currentIndex,
+    totalQuestions,
+    difficulty,
+    categoryName,
+    isMultiple,
+}: AssessmentHeaderProps) {
     const progressPercentage = ((currentIndex + 1) / totalQuestions) * 100;
 
     return (

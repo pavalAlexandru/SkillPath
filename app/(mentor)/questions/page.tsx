@@ -28,8 +28,8 @@ const ORDINE_DIFICULTATE: Record<string, number> = {
 const PAGE_SIZE = 10;
 
 export default async function MentorQuestionsPage({
-                                                      searchParams,
-                                                  }: {
+    searchParams,
+}: {
     searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string; page?: string }>;
 }) {
     const params = await searchParams;
@@ -100,6 +100,16 @@ export default async function MentorQuestionsPage({
     const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
     const fromIndex = (currentPage - 1) * PAGE_SIZE;
     const paginatedQuestions = listaSortata.slice(fromIndex, fromIndex + PAGE_SIZE);
+
+    // Întrebările din pagina curentă, grupate pe categorii
+    const grupePeCategorie = new Map<string, typeof paginatedQuestions>();
+    for (const q of paginatedQuestions) {
+        const numeCategorie = q.categories?.name ?? 'Fără categorie';
+        const grup = grupePeCategorie.get(numeCategorie) ?? [];
+        grup.push(q);
+        grupePeCategorie.set(numeCategorie, grup);
+    }
+    const categoriiGrupate = [...grupePeCategorie.entries()].sort(([a], [b]) => a.localeCompare(b));
 
     const intrebareEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
     const areFiltre = search !== '' || category !== '' || difficulty !== '';
@@ -180,11 +190,6 @@ export default async function MentorQuestionsPage({
                             </Link>
                         </th>
                         <th className="whitespace-nowrap px-6 py-3.5">
-                            <Link href={buildUrl(1, 'category')} scroll={false} className="hover:text-slate-900 dark:hover:text-white">
-                                Categorie ↕
-                            </Link>
-                        </th>
-                        <th className="whitespace-nowrap px-6 py-3.5">
                             <Link href={buildUrl(1, 'difficulty')} scroll={false} className="hover:text-slate-900 dark:hover:text-white">
                                 Dificultate ↕
                             </Link>
@@ -194,58 +199,67 @@ export default async function MentorQuestionsPage({
                         <th className="px-6 py-3.5 text-right">Acțiuni</th>
                     </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {paginatedQuestions.map((q) => (
-                        <tr key={q.id} className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                            <td className="max-w-md truncate px-6 py-4 font-bold text-slate-900 dark:text-white">
-                                {q.question_text}
-                            </td>
-                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{q.categories?.name ?? '—'}</td>
-                            <td className="px-6 py-4">
-                                <span
-                                    className={`rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${DIFICULTATE_CULOARE[q.difficulty]}`}
-                                >
-                                    {DIFICULTATE_LABEL[q.difficulty]}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                                {q.question_options.length} ({q.question_options.filter((o: any) => o.is_correct).length} corecte)
-                            </td>
-                            <td className="px-6 py-4">
-                                {q.is_active ? (
-                                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                        Activă
+                    {categoriiGrupate.map(([numeCategorie, intrebari]) => (
+                        <tbody key={numeCategorie} className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr className="border-y border-slate-200/90 bg-slate-100/80 dark:border-slate-800 dark:bg-slate-950/70">
+                                <th colSpan={5} className="px-6 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                    {numeCategorie}
+                                    <span className="ml-2 font-medium normal-case tracking-normal text-slate-500 dark:text-slate-400">
+                                        ({intrebari.length} {intrebari.length === 1 ? 'întrebare' : 'întrebări'})
                                     </span>
-                                ) : (
-                                    <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                                        Inactivă
-                                    </span>
-                                )}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                                <div className="flex items-center justify-end gap-3">
-                                    <Link href={`/questions?edit=${q.id}`} scroll={false} className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
-                                        Editează
-                                    </Link>
-                                    <form action={toggleQuestionActive} className="inline">
-                                        <input type="hidden" name="id" value={q.id} />
-                                        <input type="hidden" name="is_active" value={String(q.is_active)} />
-                                        <button
-                                            type="submit"
-                                            className={`cursor-pointer font-semibold transition hover:underline ${
-                                                q.is_active
-                                                    ? 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-                                                    : 'text-emerald-600 dark:text-emerald-400'
-                                            }`}
+                                </th>
+                            </tr>
+                            {intrebari.map((q) => (
+                                <tr key={q.id} className="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                                    <td className="max-w-md truncate px-6 py-4 font-bold text-slate-900 dark:text-white">
+                                        {q.question_text}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span
+                                            className={`rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${DIFICULTATE_CULOARE[q.difficulty]}`}
                                         >
-                                            {q.is_active ? 'Dezactivează' : 'Activează'}
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
+                                            {DIFICULTATE_LABEL[q.difficulty]}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                                        {q.question_options.length} ({q.question_options.filter((o: any) => o.is_correct).length} corecte)
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {q.is_active ? (
+                                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                Activă
+                                            </span>
+                                        ) : (
+                                            <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                                Inactivă
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-3">
+                                            <Link href={`/questions?edit=${q.id}`} scroll={false} className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400">
+                                                Editează
+                                            </Link>
+                                            <form action={toggleQuestionActive} className="inline">
+                                                <input type="hidden" name="id" value={q.id} />
+                                                <input type="hidden" name="is_active" value={String(q.is_active)} />
+                                                <button
+                                                    type="submit"
+                                                    className={`cursor-pointer font-semibold transition hover:underline ${
+                                                        q.is_active
+                                                            ? 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                                                            : 'text-emerald-600 dark:text-emerald-400'
+                                                    }`}
+                                                >
+                                                    {q.is_active ? 'Dezactivează' : 'Activează'}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
                     ))}
-                    </tbody>
                 </table>
 
                 {totalCount === 0 && (

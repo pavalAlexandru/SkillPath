@@ -76,11 +76,11 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         const data = await signUpWithEmail(
-            finalEmail,
-            password,
-            firstName,
-            lastName,
-            role,
+          finalEmail,
+          password,
+          firstName,
+          lastName,
+          role,
         );
         const { user, session } = data;
         if (!user) throw new Error("Înregistrare eșuată.");
@@ -111,10 +111,10 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setErrorMsg(
-          err.message ||
-          (isSignUp
-              ? "Eroare la înregistrare."
-              : "Eroare la conectare. Verifică datele."),
+        err.message ||
+        (isSignUp
+          ? "Eroare la înregistrare."
+          : "Eroare la conectare. Verifică datele."),
       );
     } finally {
       setLoading(false);
@@ -123,147 +123,149 @@ export default function LoginPage() {
 
   if (isEmailVerificationPending) {
     return (
-        <Card className="mx-auto max-w-xl p-10 text-center space-y-6 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/80">
-          <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Verifică-ți adresa de email</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Am trimis un link de confirmare pe adresa <strong className="text-slate-900 dark:text-white">{email}</strong>.<br/>
-            Dă click pe acel link pentru a-ți activa contul, apoi vei fi conectat automat aici.
-          </p>
-        </Card>
+      <Card className="mx-auto max-w-xl p-10 text-center space-y-6 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/80">
+        <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto" />
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Verifică-ți adresa de email</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Am trimis un link de confirmare pe adresa <strong className="text-slate-900 dark:text-white">{email}</strong>.<br />
+          Dă click pe acel link pentru a-ți activa contul, apoi vei fi conectat automat aici.
+        </p>
+      </Card>
     );
   }
 
   return (
-      <Card className="p-8 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xl dark:border-slate-800/80 dark:bg-slate-900/80">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-            {isSignUp ? "Creare cont SkillPath" : "Autentificare SkillPath"}
-          </h1>
-          <p className="mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-            {isSignUp
-                ? "Completează datele pentru a te înregistra"
-                : "Introdu datele contului pentru a continua"}
-          </p>
-        </div>
+    <Card className="p-8 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xl dark:border-slate-800/80 dark:bg-slate-900/80">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+          {isSignUp ? "Creare cont SkillPath" : "Autentificare SkillPath"}
+        </h1>
+        <p className="mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+          {isSignUp
+            ? "Completează datele pentru a te înregistra"
+            : "Introdu datele contului pentru a continua"}
+        </p>
+      </div>
 
-        {errorMsg && (
-            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700 text-center dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
-              {errorMsg}
+      {errorMsg && (
+        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700 text-center dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
+          {errorMsg}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {isSignUp && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="firstName"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              >
+                Prenume
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
+              />
             </div>
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              >
+                Nume
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
+              />
+            </div>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-              <>
-                <div>
-                  <label
-                      htmlFor="firstName"
-                      className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-                  >
-                    Prenume
-                  </label>
-                  <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                      className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
-                  />
-                </div>
-                <div>
-                  <label
-                      htmlFor="lastName"
-                      className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-                  >
-                    Nume
-                  </label>
-                  <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                      className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
-                  />
-                </div>
-              </>
-          )}
-          <div>
-            <label
-                htmlFor="email"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-            >
-              Email
-            </label>
-            <input
-                id="email"
-                name="email"
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@example.com"
-                required
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
-            />
-          </div>
-          <div>
-            <label
-                htmlFor="password"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
-            >
-              Parolă
-            </label>
-            <input
-                id="password"
-                name="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
-            />
-          </div>
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="text"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="student@example.com"
+            required
+            className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
+          />
+        </div>
 
-          <div className="flex gap-3 pt-3">
-            <Button
-                type={!isSignUp ? "submit" : "button"}
-                onClick={
-                  !isSignUp
-                      ? undefined
-                      : () => {
-                        setIsSignUp(false);
-                        setErrorMsg("");
-                      }
-                }
-                variant={!isSignUp ? "primary" : "outline"}
-                className="flex-1 py-2.5 font-bold"
-                disabled={loading}
-            >
-              {loading && !isSignUp ? "Se conectează..." : "Conectare"}
-            </Button>
-            <Button
-                type={isSignUp ? "submit" : "button"}
-                onClick={
-                  isSignUp
-                      ? undefined
-                      : () => {
-                        setIsSignUp(true);
-                        setErrorMsg("");
-                      }
-                }
-                variant={isSignUp ? "primary" : "outline"}
-                className="flex-1 py-2.5 font-bold"
-                disabled={loading}
-            >
-              {loading && isSignUp ? "Se creează..." : "Înregistrare"}
-            </Button>
-          </div>
-        </form>
-      </Card>
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+          >
+            Parolă
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="••••••••"
+            className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
+          />
+        </div>
+
+        <div className="flex gap-3 pt-3">
+          <Button
+            type={!isSignUp ? "submit" : "button"}
+            onClick={
+              !isSignUp
+                ? undefined
+                : () => {
+                    setIsSignUp(false);
+                    setErrorMsg("");
+                  }
+            }
+            variant={!isSignUp ? "primary" : "outline"}
+            className="flex-1 py-2.5 font-bold"
+            disabled={loading}
+          >
+            {loading && !isSignUp ? "Se conectează..." : "Conectare"}
+          </Button>
+          <Button
+            type={isSignUp ? "submit" : "button"}
+            onClick={
+              isSignUp
+                ? undefined
+                : () => {
+                    setIsSignUp(true);
+                    setErrorMsg("");
+                  }
+            }
+            variant={isSignUp ? "primary" : "outline"}
+            className="flex-1 py-2.5 font-bold"
+            disabled={loading}
+          >
+            {loading && isSignUp ? "Se creează..." : "Înregistrare"}
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }

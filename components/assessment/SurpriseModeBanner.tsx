@@ -14,7 +14,7 @@ export function SurpriseModeBanner() {
                         </span>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Modul Surpriză</h2>
                     </div>
-                    <p className="max-w-2xl text-sm font-medium text-slate-600 leading-relaxed dark:text-slate-400">
+                    <p className="max-w-2xl text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-400">
                         Testează-ți cunoștințele cu un mix personalizat de întrebări din toate categoriile active pentru a-ți identifica punctele slabe.
                     </p>
                 </div>
