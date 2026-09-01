@@ -11,16 +11,17 @@ export default async function StudentLayout({
     const { data: { user } } = await supabase.auth.getUser();
 
     let userName = '';
+    let avatarUrl: string | null = null;
 
     if (user) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
+        const { data: profile } = await (supabase.from('profiles') as any)
+            .select('first_name, last_name, avatar_url')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (profile) {
             userName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+            avatarUrl = profile.avatar_url ?? null;
         }
     }
 
@@ -29,6 +30,7 @@ export default async function StudentLayout({
             <StudentNavigation
                 userName={userName}
                 userEmail={user?.email || 'Nespecificat'}
+                avatarUrl={avatarUrl}
             />
             <main className="mx-auto w-full max-w-7xl flex-1 p-6">
                 {children}
