@@ -143,6 +143,7 @@ export async function updateQuestion(formData: FormData) {
     }
 
     revalidatePath('/questions');
+    revalidatePath('/proposals');
 }
 
 export async function toggleQuestionActive(formData: FormData) {

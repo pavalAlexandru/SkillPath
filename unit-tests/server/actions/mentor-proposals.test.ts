@@ -19,6 +19,10 @@ vi.mock('next/cache', () => ({
     revalidatePath: mocks.revalidatePathMock,
 }));
 
+vi.mock('@/server/actions/notifications', () => ({
+    notifyQuestionOutcome: vi.fn(),
+}));
+
 describe('mentor-proposals actions', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -50,7 +54,7 @@ describe('mentor-proposals actions', () => {
             expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
         });
 
-        it('updates status to APPROVED and is_active to true', async () => {
+        it('updates status to APPROVED and is_active to true and notifies user', async () => {
             const formData = new FormData();
             formData.append('questionId', '123');
 
@@ -59,10 +63,14 @@ describe('mentor-proposals actions', () => {
             expect(mocks.fromMock).toHaveBeenCalledWith('questions');
             expect(mocks.updateMock).toHaveBeenCalledWith({ status: 'APPROVED', is_active: true });
             expect(mocks.eqMock).toHaveBeenCalledWith('id', 123);
+            
+            const { notifyQuestionOutcome } = await import('@/server/actions/notifications');
+            expect(notifyQuestionOutcome).toHaveBeenCalledWith(123, 'APPROVED');
+            
             expect(mocks.revalidatePathMock).toHaveBeenCalledWith('/proposals');
         });
 
-        it('logs an error if update fails', async () => {
+        it('logs an error if update fails and does not notify', async () => {
             mocks.eqMock.mockResolvedValueOnce({ error: { message: 'DB update failed' } });
             
             const formData = new FormData();
@@ -71,6 +79,10 @@ describe('mentor-proposals actions', () => {
             await approveProposalAction(formData);
 
             expect(console.error).toHaveBeenCalledWith('Error approving proposal:', { message: 'DB update failed' });
+            
+            const { notifyQuestionOutcome } = await import('@/server/actions/notifications');
+            expect(notifyQuestionOutcome).not.toHaveBeenCalled();
+            
             expect(mocks.revalidatePathMock).toHaveBeenCalledWith('/proposals');
         });
     });
@@ -84,11 +96,14 @@ describe('mentor-proposals actions', () => {
             expect(mocks.revalidatePathMock).not.toHaveBeenCalled();
         });
 
-        it('deletes question options first, then the question', async () => {
+        it('notifies user, deletes question options first, then the question', async () => {
             const formData = new FormData();
             formData.append('questionId', '789');
 
             await rejectProposalAction(formData);
+
+            const { notifyQuestionOutcome } = await import('@/server/actions/notifications');
+            expect(notifyQuestionOutcome).toHaveBeenCalledWith(789, 'REJECTED');
 
             expect(mocks.fromMock).toHaveBeenNthCalledWith(1, 'question_options');
             expect(mocks.fromMock).toHaveBeenNthCalledWith(2, 'questions');
@@ -111,6 +126,9 @@ describe('mentor-proposals actions', () => {
             formData.append('questionId', '999');
 
             await rejectProposalAction(formData);
+
+            const { notifyQuestionOutcome } = await import('@/server/actions/notifications');
+            expect(notifyQuestionOutcome).toHaveBeenCalledWith(999, 'REJECTED');
 
             expect(console.error).toHaveBeenCalledWith('Error deleting proposal options:', { message: 'Failed to delete options' });
             expect(console.error).toHaveBeenCalledWith('Error deleting proposal:', { message: 'Failed to delete question' });

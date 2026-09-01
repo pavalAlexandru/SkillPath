@@ -4,7 +4,6 @@ export const studentNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Teste', href: '/assessment' },
     { label: 'Propune Întrebare', href: '/propose' },
-    { label: 'Profil & Progres', href: '/profile' },
     { label: 'Setări', href: '/settings' },
 ];
 

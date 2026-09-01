@@ -1,30 +1,45 @@
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { QuestionForm } from '@/components/mentor/QuestionForm';
 import { createClient } from '@/server/supabase/server';
 import { approveProposalAction, rejectProposalAction } from '@/server/actions/mentor-proposals';
 
 import { RealtimeQuestions } from './RealtimeQuestions';
 
-export default async function MentorProposalsPage() {
+export default async function MentorProposalsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ edit?: string }>;
+}) {
+    const params = await searchParams;
+    const editId = params.edit ? Number(params.edit) : null;
+
     const supabase = await createClient();
 
-    const { data: questions, error } = await supabase
-        .from('questions')
-        .select(`
-            id,
-            question_text,
-            difficulty,
-            question_type,
-            categories (name),
-            profiles (first_name, last_name),
-            question_options (id, option_text, is_correct)
-        `)
-        .eq('status', 'PENDING')
-        .order('created_at', { ascending: false });
+    const [{ data: questions, error }, { data: categories }] = await Promise.all([
+        supabase
+            .from('questions')
+            .select(`
+                id,
+                question_text,
+                category_id,
+                difficulty,
+                question_type,
+                categories (name),
+                profiles (first_name, last_name),
+                question_options (id, option_text, is_correct)
+            `)
+            .eq('status', 'PENDING')
+            .order('created_at', { ascending: false }),
+        supabase.from('categories').select('id, name').eq('is_active', true).order('name'),
+    ]);
 
     if (error) {
         console.error('Error fetching proposals:', error);
     }
+
+    const propunereEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
 
     return (
         <div className="space-y-6">
@@ -33,6 +48,34 @@ export default async function MentorProposalsPage() {
                 <h1 className="text-2xl font-bold text-slate-900">Propuneri Întrebări</h1>
                 <p className="text-sm text-slate-500">Revizuiește, aprobă sau respinge propunerile trimise de studenți.</p>
             </div>
+
+            {propunereEditata && (
+                <Card className="space-y-4 border-indigo-200 bg-indigo-50/40">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-base font-bold text-slate-900">Editează propunerea</h2>
+                            <p className="text-sm text-slate-500">
+                                Corectează întrebarea înainte de a o aproba. Studentul nu e notificat de modificare.
+                            </p>
+                        </div>
+                        <Link href="/proposals" scroll={false} className="text-sm text-slate-500 hover:underline">
+                            Renunță
+                        </Link>
+                    </div>
+
+                    <QuestionForm
+                        categories={categories ?? []}
+                        question={{
+                            id: propunereEditata.id,
+                            question_text: propunereEditata.question_text,
+                            category_id: propunereEditata.category_id,
+                            difficulty: propunereEditata.difficulty,
+                            question_type: propunereEditata.question_type,
+                            question_options: propunereEditata.question_options ?? [],
+                        }}
+                    />
+                </Card>
+            )}
 
             <div className="space-y-4">
                 {!questions || questions.length === 0 ? (
@@ -89,6 +132,11 @@ export default async function MentorProposalsPage() {
                                 </div>
 
                                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                                    <Link href={`/proposals?edit=${question.id}`} scroll={false}>
+                                        <Button type="button" variant="outline">
+                                            Editează
+                                        </Button>
+                                    </Link>
                                     <form action={rejectProposalAction}>
                                         <input type="hidden" name="questionId" value={question.id} />
                                         <Button type="submit" variant="danger">

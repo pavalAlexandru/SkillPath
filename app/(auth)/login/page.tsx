@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import {
   getUserRole,
   AppRole,
 } from "@/server/supabase/auth";
+import { getSupabaseClient } from "@/server/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,46 @@ export default function LoginPage() {
 
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isEmailVerificationPending, setIsEmailVerificationPending] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+        const userRole = await getUserRole(session.user.id);
+        if (userRole === "STUDENT") {
+          router.push("/dashboard");
+        } else if (userRole === "MENTOR") {
+          router.push("/overview");
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (!isEmailVerificationPending) return;
+
+    const intervalId = setInterval(async () => {
+      const supabase = getSupabaseClient();
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        clearInterval(intervalId);
+        const userRole = await getUserRole(data.session.user.id);
+        if (userRole === "STUDENT") {
+          router.push("/dashboard");
+        } else if (userRole === "MENTOR") {
+          router.push("/overview");
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(intervalId);
+  }, [isEmailVerificationPending, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,18 +75,25 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { user } = await signUpWithEmail(finalEmail,
+        const data = await signUpWithEmail(
+          finalEmail,
           password,
           firstName,
           lastName,
           role,
         );
+        const { user, session } = data;
         if (!user) throw new Error("Înregistrare eșuată.");
-        // Auto-login doesn't always populate role correctly right away if it's cached, but let's route them based on the role they signed up with
+
+        if (!session) {
+          setIsEmailVerificationPending(true);
+          return;
+        }
+
         if (role === "STUDENT") {
           router.push("/dashboard");
         } else if (role === "MENTOR") {
-          router.push("/questions");
+          router.push("/overview");
         }
       } else {
         const { user } = await signInWithEmail(finalEmail, password);
@@ -56,7 +104,7 @@ export default function LoginPage() {
         if (userRole === "STUDENT") {
           router.push("/dashboard");
         } else if (userRole === "MENTOR") {
-          router.push("/questions");
+          router.push("/overview");
         } else {
           throw new Error("Rol necunoscut. Contactează suportul.");
         }
@@ -73,10 +121,23 @@ export default function LoginPage() {
     }
   };
 
+  if (isEmailVerificationPending) {
+    return (
+      <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
+        <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto" />
+        <h2 className="text-2xl font-bold text-slate-900">Verifică-ți adresa de email</h2>
+        <p className="text-slate-500">
+          Am trimis un link de confirmare pe adresa <strong>{email}</strong>.<br />
+          Dă click pe acel link pentru a-ți activa contul, apoi vei fi conectat automat aici.
+        </p>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-8">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           {isSignUp ? "Creare cont Skillpath" : "Autentificare Skillpath"}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -87,14 +148,14 @@ export default function LoginPage() {
       </div>
 
       {errorMsg && (
-        <div className="mb-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700 font-medium text-center">
+        <div className="mb-4 rounded-lg border border-rose-100 bg-rose-50 p-3 text-center text-sm font-medium text-rose-700">
           {errorMsg}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {isSignUp && (
-          <>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="firstName"
@@ -129,8 +190,9 @@ export default function LoginPage() {
                 className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
-          </>
+          </div>
         )}
+
         <div>
           <label
             htmlFor="email"
@@ -149,6 +211,7 @@ export default function LoginPage() {
             className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
+
         <div>
           <label
             htmlFor="password"
