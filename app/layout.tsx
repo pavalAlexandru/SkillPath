@@ -1,30 +1,23 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { NotificationWidget } from "@/components/shared/NotificationWidget";
-import "./globals.css";
-
-const inter = Inter({
-    variable: "--font-inter",
-    subsets: ["latin"],
-});
+import type { Metadata } from 'next';
+import './globals.css';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 export const metadata: Metadata = {
-    title: "SkillPath",
-    description: "Platformă de evaluare și învățare pentru dezvoltatori",
+    title: 'SkillPath',
+    description: 'Platformă de evaluare și învățare',
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+                                       children,
+                                   }: {
+    children: React.ReactNode;
+}) {
     return (
-        <html lang="ro" className={`${inter.variable} h-full antialiased`}>
-        <head>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
-                rel="stylesheet"
-            />
-        </head>
-        <body className="min-h-full flex flex-col font-sans">
+        <html lang="ro" suppressHydrationWarning>
+        <body className="min-h-screen bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-[#090d16] dark:text-slate-100">
+        <ThemeProvider>
             {children}
-            <NotificationWidget />
+        </ThemeProvider>
         </body>
         </html>
     );

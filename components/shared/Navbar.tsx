@@ -37,16 +37,18 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
     });
 
     return (
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-2xs">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-2xs transition-colors dark:border-slate-800 dark:bg-slate-900/90">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
-                {/* Partea Stângă: Logo + Rol */}
+                {/* Logo & Rol */}
                 <div className="flex items-center gap-8">
                     <Link
                         href={roleBadge === 'MENTOR' ? '/overview' : '/dashboard'}
                         className="flex items-center gap-3 transition hover:opacity-90"
                     >
-                        <span className="text-2xl font-black tracking-tight text-indigo-600">SkillPath</span>
-                        <span className="rounded-md bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider text-indigo-700">
+                        <span className="text-2xl font-black tracking-tight text-indigo-600 dark:text-indigo-400">
+                            SkillPath
+                        </span>
+                        <span className="rounded-md bg-indigo-50 border border-indigo-200/80 px-2.5 py-1 text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300">
                             {roleBadge}
                         </span>
                     </Link>
@@ -64,8 +66,8 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                                     href={item.href}
                                     className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
                                         isActive
-                                            ? 'bg-indigo-50 text-indigo-700 font-bold'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                            ? 'bg-indigo-50 text-indigo-700 font-bold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200'
                                     }`}
                                 >
                                     {item.label}
@@ -75,10 +77,10 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                     </nav>
                 </div>
 
-                {/* Partea Dreaptă: Profil (Poză + Nume) & Logout */}
+                {/* Avatar & Utilizator & Buton Logout */}
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-indigo-50 text-xs font-black text-indigo-700 shadow-2xs">
+                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-indigo-50 text-xs font-black text-indigo-700 shadow-2xs dark:border-slate-800 dark:bg-indigo-950/60 dark:text-indigo-300">
                             {avatarUrl ? (
                                 <img
                                     src={avatarUrl}
@@ -91,12 +93,16 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                         </div>
 
                         <div className="hidden sm:flex flex-col items-start leading-tight">
-                            <span className="text-sm font-bold text-slate-900">{displayName}</span>
-                            <span className="text-xs text-slate-400 font-medium">{userEmail}</span>
+                            <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                {displayName}
+                            </span>
+                            <span className="text-xs text-slate-400 font-medium dark:text-slate-500">
+                                {userEmail}
+                            </span>
                         </div>
                     </div>
 
-                    <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+                    <div className="h-6 w-px bg-slate-200 hidden sm:block dark:bg-slate-800" />
 
                     <LogoutButton />
                 </div>

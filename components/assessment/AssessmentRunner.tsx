@@ -116,9 +116,8 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
             setCurrentIndex((prev) => prev + 1);
         } else {
             setIsSubmitting(true);
-            // Yield to browser to paint the loading screen before blocking/fetching
             await new Promise((resolve) => setTimeout(resolve, 50));
-            
+
             const calculated = calculateAssessmentScore(questions, answers);
             const newId = await completeAssessmentAction(assessmentId, calculated.percentage, answers, questions);
             setResult({ ...calculated, newId: newId || undefined });
@@ -143,10 +142,10 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
 
     if (isSubmitting) {
         return (
-            <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
-                <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
-                <h2 className="text-2xl font-bold text-slate-900">Se salvează rezultatele...</h2>
-                <p className="text-slate-500">Calculăm scorul și pregătim detaliile, te rugăm să aștepți.</p>
+            <Card className="mx-auto mt-8 max-w-2xl space-y-6 border border-slate-200/80 bg-white/85 p-12 text-center shadow-lg backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/80">
+                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent dark:border-indigo-400 dark:border-t-transparent"></div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Se salvează rezultatele...</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Calculăm scorul și pregătim detaliile, te rugăm să aștepți.</p>
             </Card>
         );
     }
@@ -159,14 +158,14 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
 
     return (
         <>
-            <Card className="mx-auto max-w-3xl p-8 space-y-6">
-                {/* Buton abandon test - afișat doar dacă NU este onboarding */}
+            <Card className="mx-auto max-w-4xl space-y-6 border border-slate-200/80 bg-white/85 p-6 shadow-lg backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-900/80 sm:p-8">
+                {/* Buton abandon test */}
                 {!isOnboarding && (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
                         <button
                             type="button"
                             onClick={() => setIsExitModalOpen(true)}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 transition-colors hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400"
                         >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -195,12 +194,13 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                     onHintFetched={(text) => handleHintFetched(currentQuestion.id, text)}
                 />
 
-                <div className="flex justify-between pt-4">
+                <div className="flex justify-between border-t border-slate-100 pt-5 dark:border-slate-800">
                     <Button
                         type="button"
                         variant="outline"
                         onClick={handlePrev}
                         disabled={currentIndex === 0}
+                        className="px-5 py-2.5 font-bold"
                     >
                         Înapoi
                     </Button>
@@ -209,13 +209,14 @@ export function AssessmentRunner({ assessmentId, questions }: AssessmentRunnerPr
                         variant="primary"
                         onClick={handleNext}
                         disabled={selectedOptions.length === 0}
+                        className="px-6 py-2.5 font-bold"
                     >
                         {isLastQuestion ? 'Finalizează Testul' : 'Următoarea Întrebare'}
                     </Button>
                 </div>
             </Card>
 
-            {/* Modal de confirmare ieșire - activ doar dacă nu este onboarding */}
+            {/* Modal de confirmare ieșire */}
             {!isOnboarding && (
                 <ExitAssessmentModal
                     isOpen={isExitModalOpen}

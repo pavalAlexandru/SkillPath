@@ -1,10 +1,12 @@
+import React from 'react';
+
 export default function AuthLayout({
                                        children,
                                    }: {
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+        <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4 transition-colors duration-150 dark:bg-slate-950">
             <div className="w-full max-w-md">
                 {children}
             </div>

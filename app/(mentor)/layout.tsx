@@ -27,7 +27,7 @@ export default async function MentorLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 transition-colors duration-150 dark:bg-slate-950 dark:text-slate-100">
             <Navbar
                 roleBadge="MENTOR"
                 userName={userName}

@@ -44,12 +44,14 @@ export default async function ProposeQuestionPage() {
     }
 
     return (
-        <Card className="mx-auto max-w-2xl p-8 space-y-6">
+        <Card className="mx-auto max-w-4xl space-y-6 border border-slate-200/80 bg-white/85 p-8 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/80">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">Propune o Întrebare</h1>
-                <p className="text-sm text-slate-500">Contribuie la catalogul de întrebări. Propunerea va fi revizuită de un mentor.</p>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Propune o Întrebare</h1>
+                <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    Contribuie la catalogul de întrebări. Propunerea va fi revizuită de un mentor.
+                </p>
             </div>
-            
+
             <ProposeForm categories={categories} />
         </Card>
     );

@@ -35,7 +35,7 @@ export default async function SettingsLayout({
     const avatarUrl = profile?.avatar_url ?? null;
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen w-full flex flex-col bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-[#090d16] dark:text-slate-100">
             {isMentor ? (
                 <Navbar
                     roleBadge="MENTOR"
