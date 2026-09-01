@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { updateNameAction, changePasswordAction } from '@/server/actions/settings';
 
 interface SettingsFormProps {
     initialFirstName: string;
@@ -11,10 +13,13 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ initialFirstName, initialLastName, email }: SettingsFormProps) {
+    const router = useRouter();
+
     const [firstName, setFirstName] = useState(initialFirstName);
     const [lastName, setLastName] = useState(initialLastName);
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -25,10 +30,31 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
 
     const handleSaveProfile = async () => {
         setIsSaving(true);
-        setTimeout(() => {
+        setProfileMessage(null);
+
+        try {
+            const res = await updateNameAction({ firstName, lastName });
+
+            if (res?.error) {
+                setProfileMessage({ type: 'error', text: res.error });
+            } else {
+                setProfileMessage({ type: 'success', text: 'Datele au fost salvate.' });
+                setIsEditing(false);
+                router.refresh();
+            }
+        } catch (err) {
+            console.error(err);
+            setProfileMessage({ type: 'error', text: 'A apărut o eroare la salvare.' });
+        } finally {
             setIsSaving(false);
-            setIsEditing(false);
-        }, 400);
+        }
+    };
+
+    const handleCancelProfile = () => {
+        setFirstName(initialFirstName);
+        setLastName(initialLastName);
+        setProfileMessage(null);
+        setIsEditing(false);
     };
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -41,11 +67,21 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
         setPasswordLoading(true);
         setPasswordMessage(null);
 
-        setTimeout(() => {
+        try {
+            const res = await changePasswordAction({ currentPassword, newPassword, confirmPassword });
+
+            if (res?.error) {
+                setPasswordMessage({ type: 'error', text: res.error });
+            } else {
+                resetPasswordForm();
+                setPasswordMessage({ type: 'success', text: 'Parola a fost schimbată.' });
+            }
+        } catch (err) {
+            console.error(err);
+            setPasswordMessage({ type: 'error', text: 'A apărut o eroare la schimbarea parolei.' });
+        } finally {
             setPasswordLoading(false);
-            setPasswordMessage({ type: 'success', text: 'Parola a fost actualizată cu succes.' });
-            resetPasswordForm();
-        }, 600);
+        }
     };
 
     const resetPasswordForm = () => {
@@ -70,12 +106,22 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                     <Button
                         type="button"
                         variant={isEditing ? "outline" : "secondary"}
-                        onClick={() => setIsEditing((prev) => !prev)}
+                        onClick={() => (isEditing ? handleCancelProfile() : setIsEditing(true))}
                         className="px-3.5 py-1.5 text-xs font-bold"
                     >
                         {isEditing ? 'Anulează' : 'Modifică'}
                     </Button>
                 </div>
+
+                {profileMessage && (
+                    <div className={`rounded-xl border p-3.5 text-xs font-semibold ${
+                        profileMessage.type === 'success'
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : 'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/60 dark:text-rose-300'
+                    }`}>
+                        {profileMessage.text}
+                    </div>
+                )}
 
                 <div className="space-y-4 pt-1">
                     <div>
