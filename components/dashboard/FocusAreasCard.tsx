@@ -111,7 +111,7 @@ export function FocusAreasCard({ focusAreas, allRecommendations }: FocusAreasCar
                         {/* Header Modal cu unicul buton X */}
                         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                             <div>
-                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                                     <span>📚</span> Istoric Recomandări & Resurse
                                 </h2>
                                 <p className="text-xs text-slate-500 mt-0.5">

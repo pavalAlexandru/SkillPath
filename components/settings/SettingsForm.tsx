@@ -93,7 +93,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
             <Card className="space-y-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Date personale</h2>
+                        <h2 className="text-base font-bold text-slate-900">Date personale</h2>
                         <p className="text-sm text-slate-500">Numele afișat în platformă.</p>
                     </div>
                     {!isEditing && (
@@ -107,7 +107,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                     <div className={`rounded-md p-4 text-sm ${
                         message.type === 'success'
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : 'bg-red-50 text-red-800 border border-red-200'
+                            : 'bg-rose-50 text-rose-800 border border-rose-200'
                     }`}>
                         {message.text}
                     </div>
@@ -121,7 +121,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 type="email"
                                 value={email}
                                 disabled
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-500"
                             />
                             <p className="mt-1 text-xs text-slate-400">Emailul nu poate fi modificat momentan.</p>
                         </div>
@@ -133,7 +133,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
 
@@ -144,7 +144,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 required
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
 
@@ -178,7 +178,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
             <Card className="space-y-6">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Parolă</h2>
+                        <h2 className="text-base font-bold text-slate-900">Parolă</h2>
                         <p className="text-sm text-slate-500">Parola folosită la autentificare.</p>
                     </div>
                     {!isChangingPassword && (
@@ -192,7 +192,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                     <div className={`rounded-md p-4 text-sm ${
                         passwordMessage.type === 'success'
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : 'bg-red-50 text-red-800 border border-red-200'
+                            : 'bg-rose-50 text-rose-800 border border-rose-200'
                     }`}>
                         {passwordMessage.text}
                     </div>
@@ -208,7 +208,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 required
                                 autoComplete="current-password"
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
 
@@ -221,7 +221,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 required
                                 minLength={6}
                                 autoComplete="new-password"
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                             <p className="mt-1 text-xs text-slate-400">Minim 6 caractere.</p>
                         </div>
@@ -234,7 +234,7 @@ export function SettingsForm({ initialFirstName, initialLastName, email }: Setti
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                                 autoComplete="new-password"
-                                className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
 

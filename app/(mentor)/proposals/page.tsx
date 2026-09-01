@@ -101,7 +101,7 @@ export default async function MentorProposalsPage({
                                 </div>
 
                                 <div>
-                                    <h3 className="font-semibold text-slate-900">{question.question_text}</h3>
+                                    <h3 className="text-sm font-bold text-slate-900">{question.question_text}</h3>
                                     <p className="text-xs text-slate-500 mt-1">
                                         Categorie: {categoryName} • Tip: {question.question_type} • Dificultate: {question.difficulty}
                                     </p>
@@ -114,7 +114,7 @@ export default async function MentorProposalsPage({
                                             <li key={option.id} className="flex items-start gap-2 text-sm">
                                                 <span className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border ${
                                                     option.is_correct 
-                                                    ? 'border-green-500 bg-green-50 text-green-600' 
+                                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-600' 
                                                     : 'border-slate-300'
                                                 }`}>
                                                     {option.is_correct && (
@@ -123,7 +123,7 @@ export default async function MentorProposalsPage({
                                                         </svg>
                                                     )}
                                                 </span>
-                                                <span className={option.is_correct ? 'font-medium text-green-700' : 'text-slate-700'}>
+                                                <span className={option.is_correct ? 'font-medium text-emerald-700' : 'text-slate-700'}>
                                                     {option.option_text}
                                                 </span>
                                             </li>

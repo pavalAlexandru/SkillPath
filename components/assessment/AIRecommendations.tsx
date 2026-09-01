@@ -53,7 +53,7 @@ export function AIRecommendations({ assessmentId }: { assessmentId: number }) {
     return (
         <div className="space-y-8 text-left mt-8">
             <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 border-b pb-2">Răspunsuri Greșite</h3>
+                <h3 className="text-base font-bold text-slate-900 border-b pb-2">Răspunsuri Greșite</h3>
                 {wrongAnswers.map((wa: any, idx: number) => {
                     const totalCorrect = wa.options.filter((o: any) => o.is_correct).length;
                     const selectedCorrect = wa.options.filter((o: any) => o.is_correct && wa.selected_option_ids.includes(o.id)).length;
@@ -74,14 +74,14 @@ export function AIRecommendations({ assessmentId }: { assessmentId: number }) {
                                     let icon = null;
                                     
                                     if (isSelected && isCorrect && isPartial) {
-                                        bgClass = "bg-yellow-50 border-yellow-400 text-yellow-900 ring-1 ring-yellow-400";
-                                        icon = <span className="text-yellow-600 font-bold">✓</span>;
+                                        bgClass = "bg-amber-50 border-amber-400 text-amber-900 ring-1 ring-amber-400";
+                                        icon = <span className="text-amber-600 font-bold">✓</span>;
                                     } else if (isCorrect) {
                                         bgClass = "bg-emerald-50 border-emerald-300 text-emerald-900 ring-1 ring-emerald-400";
                                         icon = <span className="text-emerald-600 font-bold">✓</span>;
                                     } else if (isSelected && !isCorrect) {
-                                        bgClass = "bg-red-50 border-red-300 text-red-900 ring-1 ring-red-400";
-                                        icon = <span className="text-red-600 font-bold">✗</span>;
+                                        bgClass = "bg-rose-50 border-rose-300 text-rose-900 ring-1 ring-rose-400";
+                                        icon = <span className="text-rose-600 font-bold">✗</span>;
                                     }
 
                                     return (
@@ -104,7 +104,7 @@ export function AIRecommendations({ assessmentId }: { assessmentId: number }) {
                 </Card>
             ) : recommendations.length > 0 ? (
                 <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
                         <span className="text-2xl">✨</span> Analiză și Recomandări AI
                     </h3>
                     {recommendations.map((rec: any, idx: number) => {

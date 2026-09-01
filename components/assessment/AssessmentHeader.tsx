@@ -40,9 +40,9 @@ export function AssessmentHeader({
                     </span>
                 </div>
 
-                <h1 className="text-sm font-medium text-slate-700">
+                <p className="text-sm font-medium text-slate-700">
                     Întrebarea {currentIndex + 1} din {totalQuestions}
-                </h1>
+                </p>
             </div>
 
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
