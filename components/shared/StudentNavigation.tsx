@@ -8,9 +8,10 @@ import { studentNavItems } from '@/lib/navigation';
 interface StudentNavigationProps {
     userName?: string;
     userEmail: string;
+    avatarUrl?: string | null;
 }
 
-export function StudentNavigation({ userName, userEmail }: StudentNavigationProps) {
+export function StudentNavigation({ userName, userEmail, avatarUrl }: StudentNavigationProps) {
     const pathname = usePathname();
     const isOnboarding = pathname?.startsWith('/assessment/onboarding');
 
@@ -23,6 +24,7 @@ export function StudentNavigation({ userName, userEmail }: StudentNavigationProp
             roleBadge="STUDENT"
             userName={userName}
             userEmail={userEmail}
+            avatarUrl={avatarUrl}
             items={studentNavItems}
         />
     );

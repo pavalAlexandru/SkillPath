@@ -16,9 +16,9 @@ type ExistingQuestion = {
 };
 
 export function QuestionForm({
-    categories,
-    question,
-}: {
+                                 categories,
+                                 question,
+                             }: {
     categories: { id: number; name: string }[];
     question?: ExistingQuestion;
 }) {
@@ -31,9 +31,9 @@ export function QuestionForm({
         question
             ? question.question_options.map((o) => ({ text: o.option_text, correct: o.is_correct }))
             : [
-                  { text: '', correct: false },
-                  { text: '', correct: false },
-              ],
+                { text: '', correct: false },
+                { text: '', correct: false },
+            ],
     );
 
     function adaugaOptiune() {
@@ -57,88 +57,123 @@ export function QuestionForm({
     }
 
     return (
-        <form action={esteEditare ? updateQuestion : createQuestion} className="space-y-4">
+        <form action={esteEditare ? updateQuestion : createQuestion} className="space-y-5">
             {esteEditare && <input type="hidden" name="question_id" value={question.id} />}
 
-            <div>
-                <label className="block text-sm font-medium text-slate-700">Enunț</label>
+            {/* Enunț */}
+            <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Enunț
+                </label>
                 <textarea
                     name="question_text"
                     required
                     minLength={5}
                     rows={2}
                     defaultValue={question?.question_text}
-                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    placeholder="Scrie enunțul întrebării..."
+                    className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
             </div>
 
-            <div className="flex gap-3">
-                <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700">Categorie</label>
+            {/* Rând: Categorie, Dificultate, Tip */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
+                {/* Categorie */}
+                <div className="space-y-1.5 sm:col-span-6">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Categorie
+                    </label>
                     <select
                         name="category_id"
                         required
                         defaultValue={question?.category_id}
-                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
                     >
                         {categories.map((c) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
+                            <option key={c.id} value={c.id} className="dark:bg-slate-900">
+                                {c.name}
+                            </option>
                         ))}
                     </select>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-slate-700">Dificultate</label>
+                {/* Dificultate */}
+                <div className="space-y-1.5 sm:col-span-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Dificultate
+                    </label>
                     <select
                         name="difficulty"
                         defaultValue={question?.difficulty ?? 'EASY'}
-                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
                     >
-                        <option value="EASY">Ușor</option>
-                        <option value="MEDIUM">Mediu</option>
-                        <option value="HARD">Greu</option>
+                        <option value="EASY" className="dark:bg-slate-900">Ușor</option>
+                        <option value="MEDIUM" className="dark:bg-slate-900">Mediu</option>
+                        <option value="HARD" className="dark:bg-slate-900">Greu</option>
                     </select>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-slate-700">Tip</label>
+                {/* Tip */}
+                <div className="space-y-1.5 sm:col-span-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Tip
+                    </label>
                     <select
                         name="question_type"
                         value={tip}
-                        onChange={(e) => setTip(e.target.value as 'SINGLE' | 'MULTIPLE')}
-                        className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => {
+                            const newTip = e.target.value as 'SINGLE' | 'MULTIPLE';
+                            setTip(newTip);
+                            if (newTip === 'SINGLE') {
+                                const firstCorrect = optiuni.findIndex((o) => o.correct);
+                                setOptiuni(
+                                    optiuni.map((opt, i) => ({
+                                        ...opt,
+                                        correct: i === (firstCorrect >= 0 ? firstCorrect : 0),
+                                    })),
+                                );
+                            }
+                        }}
+                        className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
                     >
-                        <option value="SINGLE">Un singur răspuns corect</option>
-                        <option value="MULTIPLE">Mai multe răspunsuri corecte</option>
+                        <option value="SINGLE" className="dark:bg-slate-900">Un singur răspuns corect</option>
+                        <option value="MULTIPLE" className="dark:bg-slate-900">Mai multe răspunsuri corecte</option>
                     </select>
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Variante de răspuns</label>
+            {/* Variante de răspuns */}
+            <div className="space-y-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    Variante de răspuns
+                </label>
 
                 {optiuni.map((optiune, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="flex items-center gap-3">
                         <input
                             type={tip === 'SINGLE' ? 'radio' : 'checkbox'}
+                            name="correct_option_selector"
                             checked={optiune.correct}
                             onChange={() => schimbaCorect(index)}
-                            className="h-4 w-4"
+                            className={`h-4 w-4 cursor-pointer text-indigo-600 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 ${
+                                tip === 'MULTIPLE' ? 'rounded' : ''
+                            }`}
                         />
                         <input
                             value={optiune.text}
                             onChange={(e) => schimbaText(index, e.target.value)}
                             required
                             placeholder={`Varianta ${index + 1}`}
-                            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            className="flex-1 rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500"
                         />
                         {optiuni.length > 2 && (
                             <button
                                 type="button"
                                 onClick={() => stergeOptiune(index)}
-                                className="text-sm text-rose-600 hover:underline"
+                                className="cursor-pointer text-xs font-bold text-slate-400 transition hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400"
+                                title="Șterge varianta"
                             >
-                                Șterge
+                                ✕
                             </button>
                         )}
                     </div>
@@ -148,7 +183,7 @@ export function QuestionForm({
                     <button
                         type="button"
                         onClick={adaugaOptiune}
-                        className="text-sm font-medium text-indigo-600 hover:underline"
+                        className="cursor-pointer text-xs font-bold text-indigo-600 transition hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                     >
                         + Adaugă variantă
                     </button>
@@ -157,12 +192,16 @@ export function QuestionForm({
 
             <input type="hidden" name="options_json" value={JSON.stringify(optiuni)} />
 
-            <div className="flex items-center gap-3">
-                <Button type="submit" variant="primary">
+            {/* Buton Salvare */}
+            <div className="flex items-center gap-3 pt-2">
+                <Button type="submit" variant="primary" className="px-6 py-2.5 text-xs font-bold shadow-xs">
                     {esteEditare ? 'Salvează modificările' : 'Salvează întrebarea'}
                 </Button>
                 {esteEditare && (
-                    <a href="/questions" className="text-sm text-slate-500 hover:underline">
+                    <a
+                        href="/questions"
+                        className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                    >
                         Anulează
                     </a>
                 )}

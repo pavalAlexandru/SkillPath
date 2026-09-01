@@ -112,9 +112,9 @@ export default function LoginPage() {
     } catch (err: any) {
       setErrorMsg(
         err.message ||
-          (isSignUp
-            ? "Eroare la înregistrare."
-            : "Eroare la conectare. Verifică datele."),
+        (isSignUp
+          ? "Eroare la înregistrare."
+          : "Eroare la conectare. Verifică datele."),
       );
     } finally {
       setLoading(false);
@@ -123,11 +123,11 @@ export default function LoginPage() {
 
   if (isEmailVerificationPending) {
     return (
-      <Card className="mx-auto max-w-2xl p-12 text-center space-y-6 mt-8 animate-in fade-in zoom-in duration-300">
+      <Card className="mx-auto max-w-xl p-10 text-center space-y-6 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-lg dark:border-slate-800/80 dark:bg-slate-900/80">
         <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto" />
-        <h2 className="text-2xl font-bold text-slate-900">Verifică-ți adresa de email</h2>
-        <p className="text-slate-500">
-          Am trimis un link de confirmare pe adresa <strong>{email}</strong>.<br />
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Verifică-ți adresa de email</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Am trimis un link de confirmare pe adresa <strong className="text-slate-900 dark:text-white">{email}</strong>.<br />
           Dă click pe acel link pentru a-ți activa contul, apoi vei fi conectat automat aici.
         </p>
       </Card>
@@ -135,12 +135,12 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="p-8">
+    <Card className="p-8 border border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xl dark:border-slate-800/80 dark:bg-slate-900/80">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {isSignUp ? "Creare cont Skillpath" : "Autentificare Skillpath"}
+        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+          {isSignUp ? "Creare cont SkillPath" : "Autentificare SkillPath"}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
           {isSignUp
             ? "Completează datele pentru a te înregistra"
             : "Introdu datele contului pentru a continua"}
@@ -148,7 +148,7 @@ export default function LoginPage() {
       </div>
 
       {errorMsg && (
-        <div className="mb-4 rounded-lg border border-rose-100 bg-rose-50 p-3 text-center text-sm font-medium text-rose-700">
+        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700 text-center dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
           {errorMsg}
         </div>
       )}
@@ -159,7 +159,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="firstName"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
               >
                 Prenume
               </label>
@@ -170,13 +170,13 @@ export default function LoginPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
               />
             </div>
             <div>
               <label
                 htmlFor="lastName"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
               >
                 Nume
               </label>
@@ -187,7 +187,7 @@ export default function LoginPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
           >
             Email
           </label>
@@ -208,14 +208,14 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="student@example.com"
             required
-            className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
           >
             Parolă
           </label>
@@ -227,11 +227,11 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="••••••••"
-            className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="mt-1.5 block w-full rounded-xl border border-slate-300 bg-white/80 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </div>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-3 pt-3">
           <Button
             type={!isSignUp ? "submit" : "button"}
             onClick={
@@ -243,7 +243,7 @@ export default function LoginPage() {
                   }
             }
             variant={!isSignUp ? "primary" : "outline"}
-            className="flex-1"
+            className="flex-1 py-2.5 font-bold"
             disabled={loading}
           >
             {loading && !isSignUp ? "Se conectează..." : "Conectare"}
@@ -259,7 +259,7 @@ export default function LoginPage() {
                   }
             }
             variant={isSignUp ? "primary" : "outline"}
-            className="flex-1"
+            className="flex-1 py-2.5 font-bold"
             disabled={loading}
           >
             {loading && isSignUp ? "Se creează..." : "Înregistrare"}

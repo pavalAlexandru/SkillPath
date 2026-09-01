@@ -13,16 +13,16 @@ export default async function AssessmentPage() {
     const progressMap = await getUserCategoryProgress();
 
     return (
-        <div className="space-y-8 pb-12">
+        <div className="w-full space-y-8 pb-12">
             {/* Header Nivel */}
             <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-slate-900">Learning Path</h1>
-                <span className="rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-bold text-indigo-700 tracking-wide uppercase">
+                <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Learning Path</h1>
+                <span className="rounded-full border border-indigo-200 bg-indigo-100 px-3 py-0.5 text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:border-indigo-800/60 dark:bg-indigo-950/60 dark:text-indigo-300">
                     {userLevel}
                 </span>
             </div>
 
-            {/* Banner Surprise Mode */}
+            {/* Banner Surprise Mode cu efect Glass */}
             <SurpriseModeBanner />
 
             {/* Grila de Categorii Active */}

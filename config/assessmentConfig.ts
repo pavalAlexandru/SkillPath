@@ -31,34 +31,34 @@ export interface AssessmentConfig {
 // -------------------------------------------------------------
 const RAW_CONFIG: AssessmentConfig = {
     // 1. Număr întrebări test standard (Limita: 2 - 50)
-    standardQuestionCount: 20,
+    standardQuestionCount: 10,
 
     // 2. Număr întrebări onboarding (Limita: 10 - 100)
-    onboardingQuestionCount: 25,
+    onboardingQuestionCount: 15,
 
-    // Distribuția exactă pentru Onboarding (Suma trebuie să fie egală cu onboardingQuestionCount = 25)
+    // Distribuția exactă pentru Onboarding (Suma este egală cu onboardingQuestionCount = 15)
     onboardingDifficultyDistribution: {
-        EASY: 10,
-        MEDIUM: 10,
-        HARD: 5,
+        EASY: 6,
+        MEDIUM: 6,
+        HARD: 3,
     },
 
-    // Distribuția exactă pe nivele pentru testul standard (Suma pe fiecare nivel trebuie să fie egală cu standardQuestionCount = 20)
+    // Distribuția exactă pe nivele pentru testul standard (Suma pe fiecare nivel este egală cu standardQuestionCount = 10)
     difficultyDistribution: {
         JUNIOR: {
-            EASY: 10,
-            MEDIUM: 6,
-            HARD: 4,
+            EASY: 5,
+            MEDIUM: 3,
+            HARD: 2,
         },
         MIDDLE: {
-            EASY: 4,
-            MEDIUM: 10,
-            HARD: 6,
+            EASY: 2,
+            MEDIUM: 5,
+            HARD: 3,
         },
         SENIOR: {
-            EASY: 2,
-            MEDIUM: 6,
-            HARD: 12,
+            EASY: 1,
+            MEDIUM: 3,
+            HARD: 6,
         },
     },
 

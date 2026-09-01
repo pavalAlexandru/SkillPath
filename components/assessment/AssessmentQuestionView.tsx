@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { QuestionItem } from '@/types/assesments';
 import { Button } from '@/components/ui/Button';
@@ -42,22 +44,22 @@ export function AssessmentQuestionView({
 
     return (
         <div className="space-y-6">
-            <HintConfirmationModal 
-                isOpen={isHintModalOpen} 
-                onClose={() => setIsHintModalOpen(false)} 
-                onConfirm={handleConfirmHint} 
+            <HintConfirmationModal
+                isOpen={isHintModalOpen}
+                onClose={() => setIsHintModalOpen(false)}
+                onConfirm={handleConfirmHint}
             />
-            
-            <div className="flex justify-between items-start gap-4">
-                <p className="text-lg font-medium text-slate-900 leading-relaxed">
+
+            <div className="flex items-start justify-between gap-4">
+                <h2 className="text-lg font-bold leading-relaxed text-slate-900 dark:text-white sm:text-xl">
                     {question.questionText}
-                </p>
+                </h2>
                 {!hint && (
-                    <Button 
-                        variant="outline" 
-                        onClick={handleGetHintClick} 
+                    <Button
+                        variant="outline"
+                        onClick={handleGetHintClick}
                         disabled={loadingHint || !canUseHint}
-                        className="flex-shrink-0 text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5"
+                        className="shrink-0 border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-600 hover:bg-amber-50 hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-400 dark:hover:bg-amber-900/60 dark:hover:text-amber-300"
                         title={!canUseHint ? "Ai folosit deja indiciul pentru acest test" : ""}
                     >
                         {loadingHint ? 'Se încarcă...' : '💡 Hint'}
@@ -66,8 +68,8 @@ export function AssessmentQuestionView({
             </div>
 
             {hint && (
-                <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-900 animate-in fade-in zoom-in duration-300">
-                    <strong>Sfat AI:</strong> {hint}
+                <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 p-4 text-xs font-medium leading-relaxed text-amber-900 animate-in fade-in zoom-in duration-300 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+                    <strong>💡 Sfat AI:</strong> {hint}
                 </div>
             )}
 
@@ -80,10 +82,10 @@ export function AssessmentQuestionView({
                         <label
                             key={opt.id}
                             htmlFor={inputId}
-                            className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${
+                            className={`flex cursor-pointer items-center gap-3.5 rounded-xl border p-4 transition-all ${
                                 isSelected
-                                    ? 'border-indigo-600 bg-indigo-50/50 text-indigo-950 ring-1 ring-indigo-600 shadow-sm'
-                                    : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50/50 text-slate-800'
+                                    ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 shadow-xs dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-indigo-200'
+                                    : 'border-slate-200/90 bg-white/80 text-slate-800 hover:border-slate-300 hover:bg-slate-50/80 dark:border-slate-700/80 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
                             }`}
                         >
                             <input
@@ -92,11 +94,11 @@ export function AssessmentQuestionView({
                                 name={`question-${question.id}`}
                                 checked={isSelected}
                                 onChange={() => onSelectOption(opt.id)}
-                                className={`h-4 w-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer ${
+                                className={`h-4 w-4 cursor-pointer text-indigo-600 focus:ring-indigo-500 dark:bg-slate-800 dark:border-slate-700 ${
                                     isMultiple ? 'rounded border-slate-300' : ''
                                 }`}
                             />
-                            <span className="text-sm font-normal select-none">{opt.optionText}</span>
+                            <span className="text-sm font-semibold select-none leading-snug">{opt.optionText}</span>
                         </label>
                     );
                 })}
