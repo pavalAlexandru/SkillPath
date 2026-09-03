@@ -9,6 +9,14 @@ const MODELS_CASCADE = [
     'gemini-2.5-flash'
 ];
 
+// Fără aceste limite, SDK-ul reîncearcă implicit de 5 ori cu pauze exponențiale (până la 60s)
+// la fiecare 503 „high demand”, deci un singur model blocat putea ține cererea minute întregi
+// înainte să cădem pe următorul din cascadă.
+const HTTP_OPTIONS = {
+    timeout: 30_000,
+    retryOptions: { attempts: 2, initialDelay: 1, maxDelay: 2 },
+};
+
 // Folosim globalThis pentru a păstra indexul între reîncărcările de HMR din dezvoltare
 const globalAny = globalThis as any;
 if (globalAny.activeModelIndex === undefined) {
@@ -30,7 +38,10 @@ export async function generateContentWithFallback(
             const response = await ai.models.generateContent({
                 model,
                 contents: prompt,
-                config,
+                config: {
+                    ...config,
+                    httpOptions: { ...HTTP_OPTIONS, ...config?.httpOptions },
+                },
             });
             
             // Reține modelul care a funcționat

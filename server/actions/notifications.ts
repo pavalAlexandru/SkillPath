@@ -20,6 +20,12 @@ export async function notifyQuestionOutcome(
     return;
   }
 
+  // Mentorul care aprobă/respinge o întrebare generată de AI (created_by = el) nu se notifică singur
+  const authResult = await supabase.auth.getUser();
+  if (authResult?.data?.user?.id === question.created_by) {
+    return;
+  }
+
   // 2. Construct the notification details
   const title = status === 'APPROVED' ? 'Question Approved' : 'Question Rejected';
   

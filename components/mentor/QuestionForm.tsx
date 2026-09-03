@@ -18,9 +18,11 @@ type ExistingQuestion = {
 export function QuestionForm({
                                  categories,
                                  question,
+                                 returnTo = '/questions',
                              }: {
     categories: { id: number; name: string }[];
     question?: ExistingQuestion;
+    returnTo?: string;
 }) {
     const esteEditare = question !== undefined;
 
@@ -59,7 +61,7 @@ export function QuestionForm({
     return (
         <form action={esteEditare ? updateQuestion : createQuestion} className="space-y-5">
             {esteEditare && <input type="hidden" name="question_id" value={question.id} />}
-
+            {esteEditare && <input type="hidden" name="return_to" value={returnTo} />}
             {/* Enunț */}
             <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
@@ -199,7 +201,7 @@ export function QuestionForm({
                 </Button>
                 {esteEditare && (
                     <a
-                        href="/questions"
+                        href={returnTo}
                         className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                     >
                         Anulează
