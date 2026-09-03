@@ -61,13 +61,13 @@ export function AssessmentResultCard({ assessmentId, result }: AssessmentResultC
                 </p>
             </div>
 
-            {/* Scor procentual (Mastery Score) */}
+            {/* Scor procentual (Scor obținut) */}
             <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-6 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-800/50">
                 <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">
                     {result.percentage}%
                 </div>
                 <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    Mastery Score
+                    Scor obținut
                 </div>
             </div>
 
