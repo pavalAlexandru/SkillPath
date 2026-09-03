@@ -4,6 +4,7 @@ export const studentNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Teste', href: '/assessment' },
     { label: 'Propune Întrebare', href: '/propose' },
+    { label: 'Forum', href: '/forum' },
     { label: 'Setări', href: '/settings' },
 ];
 
@@ -13,5 +14,6 @@ export const mentorNavItems: NavItem[] = [
     { label: 'Catalog Întrebări', href: '/questions' },
     { label: 'Propuneri Studenți', href: '/proposals' },
     { label: 'Studenți', href: '/students' },
+    { label: 'Forum', href: '/forum' },
     { label: 'Setări', href: '/settings' },
 ];

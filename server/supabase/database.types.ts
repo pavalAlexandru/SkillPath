@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          id: string
+          content: string
+          author_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          content: string
+          author_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          content?: string
+          author_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_chat_messages_author"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       assessment_answers: {
         Row: {
           assessment_question_id: number
