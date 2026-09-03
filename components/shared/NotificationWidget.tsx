@@ -14,15 +14,15 @@ type Notification = {
 
 export function NotificationWidget() {
   const pathname = usePathname();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotificări] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotificări = async () => {
     try {
       const data = await getUserNotifications();
       if (data) {
-        setNotifications(data as unknown as Notification[]);
+        setNotificări(data as unknown as Notification[]);
       }
     } catch (e) {
       console.error('Failed to fetch notifications:', e);
@@ -31,10 +31,10 @@ export function NotificationWidget() {
 
   useEffect(() => {
     // Initial fetch
-    fetchNotifications();
+    fetchNotificări();
 
     // Refetch when window regains focus
-    const handleFocus = () => fetchNotifications();
+    const handleFocus = () => fetchNotificări();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
@@ -63,20 +63,20 @@ export function NotificationWidget() {
     e.stopPropagation();
     
     // Optimistic update
-    const previousNotifications = [...notifications];
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    const previousNotificări = [...notifications];
+    setNotificări(prev => prev.filter(n => n.id !== id));
     
     try {
       const res = await deleteNotification(id);
       if (res && !res.success) {
         console.error('Deletion failed:', res.error);
         // Revert optimistic update
-        setNotifications(previousNotifications);
+        setNotificări(previousNotificări);
       }
     } catch (err) {
       console.error('Exception during deletion:', err);
       // Revert optimistic update
-      setNotifications(previousNotifications);
+      setNotificări(previousNotificări);
     }
   };
 
@@ -91,12 +91,12 @@ export function NotificationWidget() {
           style={{ maxHeight: '400px' }}
         >
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-100">Notifications</h3>
+            <h3 className="font-semibold text-gray-800 dark:text-gray-100">Notificări</h3>
           </div>
           
           <div className="overflow-y-auto flex-1 p-2">
             {notifications.length === 0 ? (
-              <p className="text-center text-sm text-gray-500 py-4">No notifications</p>
+              <p className="text-center text-sm text-gray-500 py-4">Nu ai nicio notificare</p>
             ) : (
               <ul className="space-y-2">
                 {notifications.map(notification => (
@@ -107,7 +107,7 @@ export function NotificationWidget() {
                     <button 
                       onClick={(e) => handleDelete(notification.id, e)}
                       className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete notification"
+                      title="Șterge notificarea"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                     </button>

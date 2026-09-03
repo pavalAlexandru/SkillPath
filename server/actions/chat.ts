@@ -2,6 +2,7 @@
 
 import { createClient } from '@/server/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { censorText } from '@/lib/censor';
 
 export type ChatMessage = {
   id: string;
@@ -12,7 +13,10 @@ export type ChatMessage = {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string;
+    email: string | null;
+    avatarUrl?: string | null;
+    level?: string | null;
+    joinedAt: string;
   };
 };
 
@@ -30,7 +34,10 @@ export async function getRecentMessages(limit = 50, searchKeyword?: string): Pro
         first_name,
         last_name,
         role,
-        avatar_url
+        avatar_url,
+        email,
+        created_at,
+        student_profiles(current_level)
       )
     `)
     .order('created_at', { ascending: false })
@@ -49,14 +56,17 @@ export async function getRecentMessages(limit = 50, searchKeyword?: string): Pro
 
   return (data || []).map((msg: any) => ({
     id: msg.id,
-    content: msg.content,
+    content: censorText(msg.content),
     createdAt: msg.created_at,
     author: {
       id: msg.author.id,
       firstName: msg.author.first_name,
       lastName: msg.author.last_name,
       role: msg.author.role,
+      email: msg.author.email || null,
       avatarUrl: msg.author.avatar_url,
+      level: msg.author.student_profiles?.current_level || null,
+      joinedAt: msg.author.created_at,
     }
   }));
 }

@@ -38,8 +38,7 @@ describe('ChatCanvas Component', () => {
         id: 'user-1',
         firstName: 'Alice',
         lastName: 'Smith',
-        role: 'STUDENT',
-        avatarUrl: null
+        role: 'STUDENT',email: 'student@example.com',avatarUrl: null, joinedAt: '2026-08-01T10:00:00.000Z'
       }
     },
     {
@@ -50,8 +49,7 @@ describe('ChatCanvas Component', () => {
         id: 'user-2',
         firstName: 'Bob',
         lastName: 'Mentor',
-        role: 'MENTOR',
-        avatarUrl: 'https://example.com/avatar.png'
+        role: 'MENTOR',email: 'mentor@example.com',avatarUrl: 'https://example.com/avatar.png', joinedAt: '2025-05-10T10:00:00.000Z'
       }
     }
   ];
@@ -178,7 +176,7 @@ describe('ChatCanvas Component', () => {
     const searchInput = screen.getByPlaceholderText(/Search thread/i);
     fireEvent.change(searchInput, { target: { value: 'help' } });
     
-    const searchButton = screen.getByRole('button', { name: /Search/i, exact: true });
+    const searchButton = screen.getByRole('button', { name: /Search/i });
     fireEvent.click(searchButton);
 
     expect(pushMock).toHaveBeenCalledWith('/forum?search=help');

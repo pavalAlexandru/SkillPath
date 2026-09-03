@@ -4,7 +4,7 @@ import { createClient } from '@/server/supabase/server';
 import { redirect } from 'next/navigation';
 
 export const metadata = {
-  title: 'Forum - Global Discussion',
+  title: 'Forum - Discuție Globală',
 };
 
 export default async function ForumPage({
@@ -21,7 +21,7 @@ export default async function ForumPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('first_name, last_name, role, avatar_url')
+    .select('first_name, last_name, role, avatar_url, email, created_at')
     .eq('id', user.id)
     .single();
 
@@ -32,9 +32,9 @@ export default async function ForumPage({
   return (
     <div className="w-full max-w-5xl mx-auto py-6 px-4 md:px-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Global Forum</h1>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Forum Global</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Discuss with mentors and students
+          Discută cu mentorii și studenții
         </p>
       </div>
       
