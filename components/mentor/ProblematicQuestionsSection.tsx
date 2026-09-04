@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import {
@@ -22,6 +22,16 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
     const [loadingBatch, setLoadingBatch] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [expandedId, setExpandedId] = useState<number | null>(null);
+
+    // Ordonăm întrebările descrescător după procentul de eșec (failureRate)
+    const sortedQuestions = useMemo(() => {
+        return [...questions].sort((a, b) => {
+            if (b.failureRate !== a.failureRate) {
+                return b.failureRate - a.failureRate;
+            }
+            return b.wrongAttempts - a.wrongAttempts;
+        });
+    }, [questions]);
 
     const handleCategoryChange = (catIdStr: string) => {
         setSelectedCategory(catIdStr);
@@ -61,10 +71,10 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
     };
 
     const handleRunBatchAI = async () => {
-        if (questions.length === 0) return;
+        if (sortedQuestions.length === 0) return;
         setLoadingBatch(true);
         try {
-            const res = await generateAllBatchInsights(questions);
+            const res = await generateAllBatchInsights(sortedQuestions);
             if (!res.success) {
                 alert('Eroare la generare: ' + (res.error || 'A apărut o problemă.'));
                 return;
@@ -80,7 +90,7 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
         }
     };
 
-    const needsAnalysis = questions.some((q) => !q.insight);
+    const needsAnalysis = sortedQuestions.some((q) => !q.insight);
 
     return (
         <Card className="border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
@@ -94,9 +104,9 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                         </h2>
                     </div>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {questions.length === 1
+                        {sortedQuestions.length === 1
                             ? 'A fost identificată o singură întrebare cu răspunsuri greșite în această categorie.'
-                            : 'Întrebările din teste finalizate care pun cele mai mari dificultăți studenților.'}
+                            : 'Întrebările clasificate descrescător după procentul de eșec înregistrat.'}
                     </p>
                 </div>
 
@@ -115,7 +125,7 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
 
                     <button
                         onClick={handleRunBatchAI}
-                        disabled={loadingBatch || isPending || questions.length === 0}
+                        disabled={loadingBatch || isPending || sortedQuestions.length === 0}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs transition hover:bg-indigo-500 disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-400"
                     >
                         {loadingBatch ? (
@@ -154,14 +164,17 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                         <div className="mx-auto h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent dark:border-indigo-400" />
                         <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">Se încarcă întrebările...</p>
                     </div>
-                ) : questions.length === 0 ? (
+                ) : sortedQuestions.length === 0 ? (
                     <p className="py-8 text-center text-xs font-medium text-slate-400 dark:text-slate-500">
                         Nu există nicio întrebare greșită înregistrată pentru selecția curentă.
                     </p>
                 ) : (
-                    questions.map((item, index) => {
+                    sortedQuestions.map((item, index) => {
                         const isExpanded = expandedId === item.questionId;
                         const isAnalyzing = loadingSingleId === item.questionId;
+
+                        // Sortăm opțiunile descrescător după procentajul obținut
+                        const sortedOptions = [...item.optionsStats].sort((a, b) => b.percentage - a.percentage);
 
                         return (
                             <div
@@ -186,9 +199,6 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                                             <div className="text-right">
                                                 <span className="text-xs font-black text-rose-600 dark:text-rose-400">
                                                     {item.failureRate}% rată eșec
-                                                </span>
-                                                <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                                                    ({item.wrongAttempts} din {item.totalAttempts} încercări)
                                                 </span>
                                             </div>
 
@@ -221,16 +231,16 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                                         {item.questionText}
                                     </p>
 
-                                    {/* Bare de distribuție */}
+                                    {/* Bare de distribuție bazate exclusiv pe procentaj */}
                                     <div className="mt-4 space-y-2">
-                                        {item.optionsStats.map((opt) => (
+                                        {sortedOptions.map((opt) => (
                                             <div key={opt.id} className="space-y-1">
                                                 <div className="flex items-center justify-between text-xs">
                                                     <span className={`font-medium ${opt.isCorrect ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
                                                         {opt.isCorrect && '✓ '} {opt.text}
                                                     </span>
                                                     <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                                                        {opt.percentage}% ({opt.timesChosen})
+                                                        {opt.percentage}%
                                                     </span>
                                                 </div>
                                                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
