@@ -79,6 +79,7 @@ interface AssessmentScoreRow {
     assessments: {
         user_id: string;
         status: string;
+        completed_at?: string;
     } | null;
 }
 
@@ -96,6 +97,17 @@ interface RecommendationRow {
         title: string;
         url: string;
     }[] | null;
+}
+
+interface AnsweredQuestionRow {
+    is_correct: boolean | null;
+    questions: {
+        difficulty: string | null;
+    } | null;
+    assessments: {
+        user_id: string;
+        status: string;
+    } | null;
 }
 
 function calculateRealStreak(tests: CompletedAssessmentRow[]): number {
@@ -148,7 +160,7 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) return null;
 
-    // 2. Profil & Nivel
+    // 2. Profil & Nivel curent
     const { data: profile } = await supabase
         .from('profiles')
         .select('first_name')
@@ -193,7 +205,7 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
         : averageScore;
     const scoreDiffVsMonth = averageScore - avgScoreLastMonth;
 
-    // 4. Categorii nivel curent & Promovare (>= 90%)
+    // 4. Categorii nivel curent & Promovare în timp real (ultimul scor înregistrat)
     const { data: activeCategories } = await supabase
         .from('categories')
         .select('id, name, level')
@@ -202,26 +214,42 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
 
     const levelCategories: CategoryRow[] = (activeCategories as CategoryRow[]) || [];
     const totalCategories = levelCategories.length;
+    const levelCategoryIds = new Set(levelCategories.map((c) => c.id));
 
     const { data: categoryScoresData } = await supabase
         .from('assessment_category_scores')
-        .select('category_id, score_percentage, assessments!inner(user_id, status)')
+        .select(`
+            category_id,
+            score_percentage,
+            assessments!inner (
+                user_id,
+                status,
+                completed_at
+            )
+        `)
         .eq('assessments.user_id', user.id)
-        .eq('assessments.status', 'COMPLETED');
+        .eq('assessments.status', 'COMPLETED')
+        .order('id', { ascending: false });
 
     const scoresList: AssessmentScoreRow[] = (categoryScoresData as unknown as AssessmentScoreRow[]) || [];
-    const highestScorePerCategory = new Map<number, number>();
+    const latestScorePerCategory = new Map<number, number>();
 
     scoresList.forEach((s: AssessmentScoreRow) => {
-        const prev = highestScorePerCategory.get(s.category_id) || 0;
-        const currentScore = Number(s.score_percentage || 0);
-        if (currentScore > prev) {
-            highestScorePerCategory.set(s.category_id, currentScore);
+        if (!levelCategoryIds.has(s.category_id)) return;
+
+        if (!latestScorePerCategory.has(s.category_id)) {
+            let scoreVal = Number(s.score_percentage || 0);
+            if (scoreVal > 0 && scoreVal <= 1) {
+                scoreVal = Math.round(scoreVal * 100);
+            } else {
+                scoreVal = Math.round(scoreVal);
+            }
+            latestScorePerCategory.set(s.category_id, scoreVal);
         }
     });
 
     const categoriesPassed = levelCategories.filter((cat: CategoryRow) => {
-        const score = highestScorePerCategory.get(cat.id) || 0;
+        const score = latestScorePerCategory.get(cat.id) ?? 0;
         return score >= 90;
     }).length;
 
@@ -229,10 +257,10 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
         ? Math.round((categoriesPassed / totalCategories) * 100)
         : 0;
 
-    // 5. Competențe per categorie din nivelul curent
+    // 5. Competențe per categorie din nivelul curent (scorul recent)
     const skillsRadar: CategorySkill[] = levelCategories.map((c) => ({
         name: c.name.length > 15 ? `${c.name.slice(0, 13)}...` : c.name,
-        score: highestScorePerCategory.get(c.id) || 0,
+        score: latestScorePerCategory.get(c.id) ?? 0,
     }));
 
     // 6. Acuratețe pe Dificultăți
@@ -246,11 +274,13 @@ export async function getStudentDashboardData(): Promise<DashboardData | null> {
         .eq('assessments.user_id', user.id)
         .eq('assessments.status', 'COMPLETED');
 
+    const answeredRows: AnsweredQuestionRow[] = (answeredQuestionsData as unknown as AnsweredQuestionRow[]) || [];
+
     let easyCorrect = 0, easyTotal = 0;
     let medCorrect = 0, medTotal = 0;
     let hardCorrect = 0, hardTotal = 0;
 
-    (answeredQuestionsData || []).forEach((row: any) => {
+    answeredRows.forEach((row) => {
         const diff = row.questions?.difficulty?.toUpperCase();
         const ok = row.is_correct ? 1 : 0;
         if (diff === 'EASY') { easyTotal++; easyCorrect += ok; }
