@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { createClient } from '@/server/supabase/server';
+import { getTopProblematicQuestions } from '@/server/actions/mentor-insights';
+import { ProblematicQuestionsSection } from '@/components/mentor/ProblematicQuestionsSection';
+
+export const dynamic = 'force-dynamic';
 
 export default async function MentorOverviewPage() {
     const supabase = await createClient();
-    const [propuneri, intrebari, studenti, evaluari, zoneSlabe] = await Promise.all([
+
+    // Rulăm interogările paralele pentru statistici, întrebări critice și categorii
+    const [propuneri, intrebari, studenti, evaluari, problematicQuestions, categoriiResult] = await Promise.all([
         supabase
             .from('questions')
             .select('*', { count: 'exact', head: true })
@@ -23,15 +29,13 @@ export default async function MentorOverviewPage() {
             .from('assessments')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'COMPLETED'),
+        getTopProblematicQuestions(),
         supabase
-            .from('assessment_category_scores')
-            .select('category_id, categories(name)')
-            .eq('is_weak_area', true),
+            .from('categories')
+            .select('id, name')
+            .eq('is_active', true)
+            .order('name'),
     ]);
-
-    const categoriiDificile = numaraCategoriiDificile(
-        (zoneSlabe.data ?? []) as unknown as { category_id: number; categories: { name: string } | null }[],
-    );
 
     const { data: evaluariRecente } = await supabase
         .from('assessments')
@@ -178,39 +182,11 @@ export default async function MentorOverviewPage() {
                 />
             </div>
 
-            {/* Puncte critice studenți */}
-            <Card className="border border-slate-200/80 bg-white/80 p-6 backdrop-blur-md shadow-xs dark:border-slate-800/80 dark:bg-slate-900/80">
-                <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-base font-bold text-slate-900 dark:text-white">Puncte critice studenți</h2>
-                    <span className="rounded-full border border-amber-200/80 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300">
-                        Atenție
-                    </span>
-                </div>
-                <p className="mb-4 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    Categoriile la care studenții au fost marcați cel mai des ca zonă slabă:
-                </p>
-
-                {categoriiDificile.length > 0 ? (
-                    <div className="space-y-3">
-                        {categoriiDificile.map((cat) => (
-                            <div
-                                key={cat.name}
-                                className="relative flex items-center justify-between overflow-hidden rounded-xl border border-slate-200/70 bg-slate-50/60 p-3.5 pl-4 backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-800/40"
-                            >
-                                <div className="absolute left-0 top-0 h-full w-1 bg-amber-500" />
-                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{cat.name}</span>
-                                <span className="rounded-lg bg-amber-100/80 px-2.5 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                                    {cat.numar} {cat.numar === 1 ? 'apariție' : 'apariții'}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="py-6 text-center text-sm font-medium text-slate-400 dark:text-slate-500">
-                        Nu există încă suficiente evaluări pentru a identifica zone slabe.
-                    </p>
-                )}
-            </Card>
+            {/* SECȚIUNE NOUĂ: Diagnostic AI & Top 5 Întrebări Frecvent Greșite */}
+            <ProblematicQuestionsSection
+                initialQuestions={problematicQuestions}
+                categories={categoriiResult.data || []}
+            />
 
             {/* Activitate recentă */}
             <Card className="overflow-hidden border border-slate-200/80 bg-white/80 p-0 backdrop-blur-md shadow-xs dark:border-slate-800/80 dark:bg-slate-900/80">
@@ -324,25 +300,6 @@ function BaraStatistica(props: { eticheta: string; valoare: number; total: numbe
             </div>
         </div>
     );
-}
-
-function numaraCategoriiDificile(
-    randuri: { category_id: number; categories: { name: string } | null }[],
-) {
-    const numarPerCategorie = new Map<string, number>();
-
-    for (const rand of randuri) {
-        const nume = rand.categories?.name ?? 'Categorie necunoscută';
-        const numarVechi = numarPerCategorie.get(nume);
-        const numarDeBaza = numarVechi ?? 0;
-        const numarNou = numarDeBaza + 1;
-        numarPerCategorie.set(nume, numarNou);
-    }
-
-    return Array.from(numarPerCategorie.entries())
-        .map(([name, numar]) => ({ name, numar }))
-        .sort((a, b) => b.numar - a.numar)
-        .slice(0, 3);
 }
 
 function StatCard(props: {
