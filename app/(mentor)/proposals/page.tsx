@@ -5,10 +5,12 @@ import { QuestionForm } from '@/components/mentor/QuestionForm';
 import { createClient } from '@/server/supabase/server';
 import { approveProposalAction, rejectProposalAction } from '@/server/actions/mentor-proposals';
 import { RealtimeQuestions } from './RealtimeQuestions';
+import { AiQuestionGenerator } from '@/components/mentor/AiQuestionGenerator';
 
 interface ProfileInfo {
     first_name: string | null;
     last_name: string | null;
+    role: string | null;
 }
 
 interface CategoryInfo {
@@ -35,11 +37,11 @@ interface QuestionProposal {
 export default async function MentorProposalsPage({
     searchParams,
 }: {
-    searchParams: Promise<{ edit?: string }>;
+    searchParams: Promise<{ edit?: string; saved?: string }>;
 }) {
     const params = await searchParams;
     const editId = params.edit ? Number(params.edit) : null;
-
+    const aFostSalvata = params.saved === '1';
     const supabase = await createClient();
 
     const [{ data: questions, error }, { data: categories }] = await Promise.all([
@@ -52,7 +54,7 @@ export default async function MentorProposalsPage({
                 difficulty,
                 question_type,
                 categories (name),
-                profiles (first_name, last_name),
+                profiles (first_name, last_name, role),
                 question_options (id, option_text, is_correct)
             `)
             .eq('status', 'PENDING')
@@ -73,10 +75,21 @@ export default async function MentorProposalsPage({
             <div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Propuneri Întrebări</h1>
                 <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    Revizuiește, aprobă sau respinge propunerile trimise de studenți.
+                    Revizuiește, aprobă sau respinge propunerile studenților și întrebările generate de AI.
                 </p>
             </div>
 
+            <AiQuestionGenerator categories={categories ?? []} />
+            {aFostSalvata && (
+                <Card className="flex items-center justify-between border border-emerald-200 bg-emerald-50/90 px-5 py-3 dark:border-emerald-800/60 dark:bg-emerald-950/40">
+                    <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                        ✓ Propunerea a fost actualizată. O poți aproba sau respinge mai jos.
+                    </p>
+                    <Link href="/proposals" scroll={false} className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-300">
+                        Închide
+                    </Link>
+                </Card>
+            )}
             {propunereEditata && (
                 <Card className="space-y-4 border border-indigo-100/90 bg-indigo-50/40 p-6 backdrop-blur-md shadow-xs dark:border-indigo-900/50 dark:bg-indigo-950/20">
                     <div className="flex items-start justify-between">
@@ -93,6 +106,7 @@ export default async function MentorProposalsPage({
 
                     <QuestionForm
                         categories={categories ?? []}
+                        returnTo="/proposals"
                         question={{
                             id: propunereEditata.id,
                             question_text: propunereEditata.question_text,
@@ -123,9 +137,17 @@ export default async function MentorProposalsPage({
                                     <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                                         Propus de: <strong className="text-slate-700 dark:text-slate-200">{creatorName}</strong>
                                     </span>
-                                    <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-300">
-                                        În așteptare
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {/* O propunere PENDING creată de un MENTOR este, prin construcție, generată de AI */}
+                                        {question.profiles?.role?.toUpperCase() === 'MENTOR' && (
+                                            <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:border-indigo-800/60 dark:bg-indigo-950/60 dark:text-indigo-300">
+                                                ✨ Generat de AI
+                                            </span>
+                                        )}
+                                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-300">
+                                            În așteptare
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div>

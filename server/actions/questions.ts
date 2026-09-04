@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/server/supabase/server';
+import { redirect } from 'next/navigation';
 
 export async function createQuestion(formData: FormData) {
     const questionText = String(formData.get('question_text') ?? '').trim();
@@ -77,6 +78,7 @@ export async function updateQuestion(formData: FormData) {
     const difficulty = String(formData.get('difficulty') ?? 'EASY');
     const questionType = String(formData.get('question_type') ?? 'SINGLE');
     const optionsRaw = String(formData.get('options_json') ?? '[]');
+    const returnTo = String(formData.get('return_to') ?? '/questions');
 
     if (!questionId || questionText.length < 5) {
         return;
@@ -144,6 +146,10 @@ export async function updateQuestion(formData: FormData) {
 
     revalidatePath('/questions');
     revalidatePath('/proposals');
+
+    // Doar rute cunoscute, ca să nu putem fi trimiși oriunde printr-un câmp ascuns modificat
+    const destinatie = returnTo === '/proposals' ? '/proposals' : '/questions';
+    redirect(`${destinatie}?saved=1`);
 }
 
 export async function toggleQuestionActive(formData: FormData) {

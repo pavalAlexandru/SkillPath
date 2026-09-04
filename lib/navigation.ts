@@ -11,8 +11,8 @@ export const studentNavItems: NavItem[] = [
 export const mentorNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/overview' },
     { label: 'Categorii', href: '/categories' },
-    { label: 'Catalog Întrebări', href: '/questions' },
-    { label: 'Propuneri Studenți', href: '/proposals' },
+    { label: 'Întrebări', href: '/questions' },
+    { label: 'Propuneri', href: '/proposals' },
     { label: 'Studenți', href: '/students' },
     { label: 'Forum', href: '/forum' },
     { label: 'Setări', href: '/settings' },

@@ -40,10 +40,10 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-2xs transition-colors dark:border-slate-800 dark:bg-slate-900/90">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
                 {/* Logo & Rol */}
-                <div className="flex items-center gap-8">
+                <div className="flex min-w-0 items-center gap-6">
                     <Link
                         href={roleBadge === 'MENTOR' ? '/overview' : '/dashboard'}
-                        className="flex items-center gap-3 transition hover:opacity-90"
+                        className="flex shrink-0 items-center gap-3 transition hover:opacity-90"
                     >
                         <span className="text-2xl font-black tracking-tight text-indigo-600 dark:text-indigo-400">
                             SkillPath
@@ -64,7 +64,7 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors ${
+                                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                                         isActive
                                             ? 'bg-indigo-50 text-indigo-700 font-bold dark:bg-indigo-950/60 dark:text-indigo-300'
                                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200'
@@ -78,7 +78,7 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                 </div>
 
                 {/* Avatar & Utilizator & Buton Logout */}
-                <div className="flex items-center gap-4">
+                <div className="flex shrink-0 items-center gap-4">
                     <div className="flex items-center gap-3">
                         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-indigo-50 text-xs font-black text-indigo-700 shadow-2xs dark:border-slate-800 dark:bg-indigo-950/60 dark:text-indigo-300">
                             {avatarUrl ? (
@@ -92,7 +92,7 @@ export function Navbar({ roleBadge = 'STUDENT', userName, userEmail, avatarUrl, 
                             )}
                         </div>
 
-                        <div className="hidden sm:flex flex-col items-start leading-tight">
+                        <div className="hidden sm:flex flex-col items-start leading-tight whitespace-nowrap">
                             <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
                                 {displayName}
                             </span>

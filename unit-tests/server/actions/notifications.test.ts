@@ -95,6 +95,18 @@ describe('notifications actions', () => {
         reference_id: 1,
       });
     });
+
+    it('nu inserează notificare când creatorul este userul curent (întrebare generată de AI de mentor)', async () => {
+      mocks.singleMock.mockResolvedValueOnce({
+        data: { created_by: 'mentor-1', question_text: 'Ce este un closure?' },
+        error: null,
+      });
+      mocks.getUserMock.mockResolvedValueOnce({ data: { user: { id: 'mentor-1' } }, error: null });
+
+      await notifyQuestionOutcome(1, 'REJECTED');
+
+      expect(mocks.insertMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('getUserNotifications', () => {
