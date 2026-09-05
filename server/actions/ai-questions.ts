@@ -6,6 +6,7 @@ import { Type, Schema } from '@google/genai';
 import { createClient } from '@/server/supabase/server';
 import { generateContentWithFallback } from './ai-fallback';
 import { LEVEL_LABEL, type Level } from '@/lib/levels';
+import { aiConfig } from '@/config/aiConfig';
 
 export type GenerateAiQuestionsResult =
     | { success: true; inserted: number }
@@ -14,17 +15,27 @@ export type GenerateAiQuestionsResult =
 
 const InputSchema = z.object({
     categoryIds: z.array(z.number().positive()).min(1, 'Alege cel puțin o categorie'),
-    count: z.number().int().min(1).max(5, 'Maxim 5 întrebări per categorie'),
+    count: z.number().int().min(1).max(aiConfig.maxQuestionsPerBatch, `Maxim ${aiConfig.maxQuestionsPerBatch} întrebări per categorie`),
     // MIXED = AI-ul alege aleator între SINGLE și MULTIPLE pentru fiecare întrebare
     questionType: z.enum(['MIXED', 'SINGLE', 'MULTIPLE']).default('MIXED'),
+    // MIXED = AI-ul amestecă dificultățile; altfel toate întrebările au dificultatea aleasă
+    difficulty: z.enum(['MIXED', 'EASY', 'MEDIUM', 'HARD']).default('MIXED'),
 });
 
 export type AiQuestionType = z.infer<typeof InputSchema>['questionType'];
+export type AiDifficulty = z.infer<typeof InputSchema>['difficulty'];
 
 const REGULA_TIP: Record<AiQuestionType, string> = {
     MIXED: 'Alege tu tipul pentru fiecare întrebare, aleator: aproximativ jumătate SINGLE (exact o variantă corectă) și jumătate MULTIPLE (2-3 variante corecte).',
     SINGLE: 'Toate întrebările sunt de tip SINGLE: exact o variantă corectă.',
     MULTIPLE: 'Toate întrebările sunt de tip MULTIPLE: 2-3 variante corecte din 4.',
+};
+
+const REGULA_DIFICULTATE: Record<AiDifficulty, string> = {
+    MIXED: 'Alege tu dificultatea (EASY / MEDIUM / HARD) potrivită enunțului; amestecă dificultățile.',
+    EASY: 'Toate întrebările au dificultatea EASY: noțiuni de bază, un singur concept, fără capcane.',
+    MEDIUM: 'Toate întrebările au dificultatea MEDIUM: combină 2 concepte sau cer înțelegerea unui comportament mai puțin evident.',
+    HARD: 'Toate întrebările au dificultatea HARD: cazuri limită, detalii de implementare sau raționament în mai mulți pași.',
 };
 
 // Ce acceptăm de la AI (aceleași reguli ca la propunerile studenților)
@@ -70,7 +81,7 @@ const responseSchema: Schema = {
 
 export async function generateAiQuestions(input: unknown): Promise<GenerateAiQuestionsResult> {
     try {
-        const { categoryIds, count, questionType } = InputSchema.parse(input);
+        const { categoryIds, count, questionType, difficulty } = InputSchema.parse(input);
 
         // --- E2E Mocking Fallback (același pattern ca în ai-recommendations.ts) ---
         let isE2E = false;
@@ -85,6 +96,22 @@ export async function generateAiQuestions(input: unknown): Promise<GenerateAiQue
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { error: 'Neautentificat' };
+
+        // Limita zilnică: numărăm ce a creat mentorul în ultimele 24h, înainte să chemăm AI-ul
+        const limita = aiConfig.dailyGenerationLimitPerMentor;
+        const deLa = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count: generateAzi } = await supabase
+            .from('questions')
+            .select('id', { count: 'exact', head: true })
+            .eq('created_by', user.id)
+            .gte('created_at', deLa);
+        const ramase = limita - (generateAzi ?? 0);
+        if (ramase <= 0) {
+            return { error: `Ai atins limita de ${limita} întrebări generate pe zi. Încearcă din nou mâine.` };
+        }
+        if (count * categoryIds.length > ramase) {
+            return { error: `Mai poți genera ${ramase} ${ramase === 1 ? 'întrebare' : 'întrebări'} azi. Alege un număr mai mic.` };
+        }
 
         const { data: categories } = await supabase
             .from('categories')
@@ -102,7 +129,7 @@ export async function generateAiQuestions(input: unknown): Promise<GenerateAiQue
                 .limit(50);
             const existingTexts = (existing ?? []).map((q) => q.question_text);
 
-            const prompt = buildPrompt(cat, count, questionType, existingTexts);
+            const prompt = buildPrompt(cat, count, questionType, difficulty, existingTexts);
 
             const response = await generateContentWithFallback(prompt, {
                 responseMimeType: 'application/json',
@@ -122,7 +149,8 @@ export async function generateAiQuestions(input: unknown): Promise<GenerateAiQue
                     .insert({
                         category_id: cat.id,
                         question_text: q.question_text,
-                        difficulty: q.difficulty,
+                        // Dacă mentorul a ales o dificultate, o impunem noi, indiferent ce a marcat AI-ul
+                        difficulty: difficulty === 'MIXED' ? q.difficulty : difficulty,
                         question_type: q.question_type,
                         status: 'PENDING',
                         is_active: false,
@@ -154,6 +182,7 @@ function buildPrompt(
     cat: { name: string; description: string | null; level: string },
     count: number,
     questionType: AiQuestionType,
+    difficulty: AiDifficulty,
     existingTexts: string[],
 ) {
     const levelLabel = LEVEL_LABEL[cat.level as Level] ?? cat.level;
@@ -167,7 +196,7 @@ Nivel țintă: ${levelLabel}
 Generează exact ${count} întrebări NOI în limba română, pentru această categorie și acest nivel.
 Reguli:
 1. Fiecare întrebare are exact 4 variante de răspuns.
-2. Alege tu dificultatea (EASY / MEDIUM / HARD) potrivită enunțului; amestecă dificultățile.
+2. ${REGULA_DIFICULTATE[difficulty]}
 3. ${REGULA_TIP[questionType]}
 4. Variantele greșite trebuie să fie plauzibile, nu evidente.
 5. Nu repeta și nu reformula întrebările existente de mai jos.
