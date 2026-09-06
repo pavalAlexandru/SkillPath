@@ -89,7 +89,7 @@ export async function saveCompletedAssessment(
         const { headers } = await import('next/headers');
         const headersList = await headers();
         isE2E = headersList.get('x-e2e-test') === 'true';
-    } catch (e) {
+    } catch {
         // Not in request context
     }
 

@@ -202,6 +202,80 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
+            {/* Secțiune mutată: Activitate Săptămânală + Insigne */}
+            <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3">
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
+                    <div>
+                        <div className="mb-2 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Activitate Săptămânală</h3>
+                            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Ultimele 7 zile</span>
+                        </div>
+                        <p className="mb-4 text-[11px] font-medium text-slate-400 dark:text-slate-500">Consistența este cheia spre succes</p>
+
+                        <div className="grid grid-cols-7 gap-2 text-center">
+                            {data.weeklyActivity.map((day, idx) => (
+                                <div key={idx} className="flex flex-col items-center gap-1.5">
+                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{day.dayName}</span>
+                                    <div
+                                        className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold shadow-2xs transition-all ${
+                                            day.count > 0
+                                                ? 'bg-indigo-600 text-white shadow-indigo-200 dark:shadow-none'
+                                                : 'border border-slate-200/60 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-500'
+                                        }`}
+                                        title={`${day.date}: ${day.count} teste`}
+                                    >
+                                        {day.count > 0 ? day.count : '•'}
+                                    </div>
+                                    <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500">{day.date.split(' ')[0]}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                        <span>Total teste: <strong className="text-slate-900 dark:text-white">{data.testsThisWeek}</strong></span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">Activitate constantă 🔥</span>
+                    </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 lg:col-span-2">
+                    <div>
+                        <div className="mb-2 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Insigne & Realizări</h3>
+                            <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
+                                {data.achievements.filter(a => a.unlocked).length} din {data.achievements.length} deblocate
+                            </span>
+                        </div>
+                        <p className="mb-4 text-[11px] font-medium text-slate-400 dark:text-slate-500">Completează provocări pentru a debloca recompense</p>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {data.achievements.map((badge) => (
+                                <div
+                                    key={badge.id}
+                                    className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
+                                        badge.unlocked
+                                            ? 'border-amber-200/80 bg-gradient-to-r from-amber-50/60 to-white shadow-2xs dark:border-amber-900/40 dark:from-amber-950/20 dark:to-slate-900'
+                                            : 'border-slate-200/60 bg-slate-50/50 opacity-60 dark:border-slate-800/60 dark:bg-slate-800/30'
+                                    }`}
+                                >
+                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg ${
+                                        badge.unlocked ? 'bg-amber-100 text-amber-700 shadow-inner dark:bg-amber-900/50 dark:text-amber-300' : 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
+                                    }`}>
+                                        {badge.unlocked ? badge.icon : '🔒'}
+                                    </div>
+                                    <div>
+                                        <h4 className={`text-xs font-bold ${badge.unlocked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+                                            {badge.title}
+                                        </h4>
+                                        <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{badge.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Secțiune: Evoluție Scor + Arii de Îmbunătățire */}
             <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
                 <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
@@ -419,80 +493,6 @@ export default async function DashboardPage() {
                                     style={{ width: `${data.difficultyAccuracy.hard}%` }}
                                 />
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Activitate Săptămânală + Insigne */}
-            <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-3">
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80">
-                    <div>
-                        <div className="mb-2 flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Activitate Săptămânală</h3>
-                            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Ultimele 7 zile</span>
-                        </div>
-                        <p className="mb-4 text-[11px] font-medium text-slate-400 dark:text-slate-500">Consistența este cheia spre succes</p>
-
-                        <div className="grid grid-cols-7 gap-2 text-center">
-                            {data.weeklyActivity.map((day, idx) => (
-                                <div key={idx} className="flex flex-col items-center gap-1.5">
-                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{day.dayName}</span>
-                                    <div
-                                        className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold shadow-2xs transition-all ${
-                                            day.count > 0
-                                                ? 'bg-indigo-600 text-white shadow-indigo-200 dark:shadow-none'
-                                                : 'border border-slate-200/60 bg-slate-100 text-slate-400 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-500'
-                                        }`}
-                                        title={`${day.date}: ${day.count} teste`}
-                                    >
-                                        {day.count > 0 ? day.count : '•'}
-                                    </div>
-                                    <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500">{day.date.split(' ')[0]}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                        <span>Total teste: <strong className="text-slate-900 dark:text-white">{data.testsThisWeek}</strong></span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">Activitate constantă 🔥</span>
-                    </div>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 lg:col-span-2">
-                    <div>
-                        <div className="mb-2 flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Insigne & Realizări</h3>
-                            <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">
-                                {data.achievements.filter(a => a.unlocked).length} din {data.achievements.length} deblocate
-                            </span>
-                        </div>
-                        <p className="mb-4 text-[11px] font-medium text-slate-400 dark:text-slate-500">Completează provocări pentru a debloca recompense</p>
-
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {data.achievements.map((badge) => (
-                                <div
-                                    key={badge.id}
-                                    className={`flex items-center gap-3 rounded-xl border p-3 transition-all ${
-                                        badge.unlocked
-                                            ? 'border-amber-200/80 bg-gradient-to-r from-amber-50/60 to-white shadow-2xs dark:border-amber-900/40 dark:from-amber-950/20 dark:to-slate-900'
-                                            : 'border-slate-200/60 bg-slate-50/50 opacity-60 dark:border-slate-800/60 dark:bg-slate-800/30'
-                                    }`}
-                                >
-                                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg ${
-                                        badge.unlocked ? 'bg-amber-100 text-amber-700 shadow-inner dark:bg-amber-900/50 dark:text-amber-300' : 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
-                                    }`}>
-                                        {badge.unlocked ? badge.icon : '🔒'}
-                                    </div>
-                                    <div>
-                                        <h4 className={`text-xs font-bold ${badge.unlocked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
-                                            {badge.title}
-                                        </h4>
-                                        <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{badge.description}</p>
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </div>
