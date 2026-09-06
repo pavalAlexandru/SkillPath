@@ -4,7 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { generateAiQuestions, type AiQuestionType } from '@/server/actions/ai-questions';
+import { generateAiQuestions, type AiQuestionType, type AiDifficulty } from '@/server/actions/ai-questions';
+import { aiConfig } from '@/config/aiConfig';
+
+const MAX_PER_LOT = aiConfig.maxQuestionsPerBatch;
+
+// Aceleași clase pe select-uri și input, cu înălțime fixă, ca toate să stea pe aceeași linie
+const CONTROL =
+    'mt-1.5 h-10 rounded-xl border border-slate-300 bg-white/90 px-3.5 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100';
 
 export function AiQuestionGenerator({ categories }: { categories: { id: number; name: string }[] }) {
     const router = useRouter();
@@ -13,16 +20,17 @@ export function AiQuestionGenerator({ categories }: { categories: { id: number; 
     // Păstrăm textul brut ca să poată fi golit fără să sară la 0; convertim doar la trimitere
     const [countInput, setCountInput] = useState('3');
     const [questionType, setQuestionType] = useState<AiQuestionType>('MIXED');
+    const [difficulty, setDifficulty] = useState<AiDifficulty>('MIXED');
     const [loading, setLoading] = useState(false);
 
     const count = Number(countInput);
-    const countValid = countInput.trim() !== '' && Number.isInteger(count) && count >= 1 && count <= 5;
+    const countValid = countInput.trim() !== '' && Number.isInteger(count) && count >= 1 && count <= MAX_PER_LOT;
     const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
     async function genereaza() {
         setLoading(true);
         setMessage(null);
-        const result = await generateAiQuestions({ categoryIds: [Number(categoryId)], count, questionType });
+        const result = await generateAiQuestions({ categoryIds: [Number(categoryId)], count, questionType, difficulty });
         setLoading(false);
         if ('error' in result) {
 
@@ -40,7 +48,7 @@ export function AiQuestionGenerator({ categories }: { categories: { id: number; 
                     <span>✨</span> Generează întrebări cu AI
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Alege categoria; AI-ul propune enunțul, dificultatea și variantele. Le aprobi sau respingi mai jos.
+                    Alege categoria, tipul și dificultatea; AI-ul propune enunțul și variantele. Le aprobi sau respingi mai jos.
                 </p>
             </div>
 
@@ -52,7 +60,7 @@ export function AiQuestionGenerator({ categories }: { categories: { id: number; 
                     <select
                         value={categoryId}
                         onChange={(e) => setCategoryId(e.target.value)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
+                        className={`${CONTROL} w-full`}
                     >
                         <option value="" className="dark:bg-slate-900">Alege o categorie...</option>
                         {categories.map((c) => (
@@ -70,11 +78,27 @@ export function AiQuestionGenerator({ categories }: { categories: { id: number; 
                     <select
                         value={questionType}
                         onChange={(e) => setQuestionType(e.target.value as AiQuestionType)}
-                        className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm font-medium text-slate-900 shadow-2xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
+                        className={`${CONTROL} w-full`}
                     >
                         <option value="MIXED" className="dark:bg-slate-900">Mixt (aleator)</option>
                         <option value="SINGLE" className="dark:bg-slate-900">Un singur răspuns corect</option>
                         <option value="MULTIPLE" className="dark:bg-slate-900">Mai multe răspunsuri corecte</option>
+                    </select>
+                </div>
+
+                <div className="min-w-40">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                        Dificultate
+                    </label>
+                    <select
+                        value={difficulty}
+                        onChange={(e) => setDifficulty(e.target.value as AiDifficulty)}
+                        className={`${CONTROL} w-full`}
+                    >
+                        <option value="MIXED" className="dark:bg-slate-900">Mixt (aleator)</option>
+                        <option value="EASY" className="dark:bg-slate-900">Ușor</option>
+                        <option value="MEDIUM" className="dark:bg-slate-900">Mediu</option>
+                        <option value="HARD" className="dark:bg-slate-900">Greu</option>
                     </select>
                 </div>
 
@@ -83,18 +107,18 @@ export function AiQuestionGenerator({ categories }: { categories: { id: number; 
                         Întrebări per categorie
                     </label>
                     <input
-                        type="number" min={1} max={5} value={countInput}
+                        type="number" min={1} max={MAX_PER_LOT} value={countInput}
                         onChange={(e) => setCountInput(e.target.value)}
-                        className="mt-1.5 w-24 rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2 text-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100"
+                        className={`${CONTROL} w-24`}
                     />
                 </div>
-                <Button type="button" onClick={genereaza} disabled={loading || categoryId === '' || !countValid} className="py-2.5 font-bold">
+                <Button type="button" onClick={genereaza} disabled={loading || categoryId === '' || !countValid} className="h-10 rounded-xl font-bold">
                     {loading ? 'Se generează...' : 'Generează cu AI'}
                 </Button>
             </div>
 
             {!countValid && (
-                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">Alege un număr între 1 și 5.</p>
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">Alege un număr între 1 și {MAX_PER_LOT}.</p>
             )}
 
             {message && (

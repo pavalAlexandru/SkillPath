@@ -34,14 +34,22 @@ interface QuestionProposal {
     question_options: OptionInfo[];
 }
 
+type Sursa = 'toate' | 'studenti' | 'ai';
+
+// O propunere PENDING creată de un MENTOR este, prin construcție, generată de AI
+function esteGenerataDeAi(q: QuestionProposal) {
+    return q.profiles?.role?.toUpperCase() === 'MENTOR';
+}
+
 export default async function MentorProposalsPage({
     searchParams,
 }: {
-    searchParams: Promise<{ edit?: string; saved?: string }>;
+    searchParams: Promise<{ edit?: string; saved?: string; sursa?: string }>;
 }) {
     const params = await searchParams;
     const editId = params.edit ? Number(params.edit) : null;
     const aFostSalvata = params.saved === '1';
+    const sursa: Sursa = params.sursa === 'ai' || params.sursa === 'studenti' ? params.sursa : 'toate';
     const supabase = await createClient();
 
     const [{ data: questions, error }, { data: categories }] = await Promise.all([
@@ -66,8 +74,18 @@ export default async function MentorProposalsPage({
         console.error('Error fetching proposals:', error);
     }
 
-    const proposalsList = (questions ?? []) as unknown as QuestionProposal[];
-    const propunereEditata = editId ? proposalsList.find((q) => q.id === editId) : undefined;
+    const toatePropunerile = (questions ?? []) as unknown as QuestionProposal[];
+    const propunereEditata = editId ? toatePropunerile.find((q) => q.id === editId) : undefined;
+
+    const generateDeAi = toatePropunerile.filter(esteGenerataDeAi);
+    const deLaStudenti = toatePropunerile.filter((q) => !esteGenerataDeAi(q));
+    const proposalsList = sursa === 'ai' ? generateDeAi : sursa === 'studenti' ? deLaStudenti : toatePropunerile;
+
+    const filtre: { key: Sursa; label: string; count: number }[] = [
+        { key: 'toate', label: 'Toate', count: toatePropunerile.length },
+        { key: 'studenti', label: 'De la studenți', count: deLaStudenti.length },
+        { key: 'ai', label: '✨ Generate de AI', count: generateDeAi.length },
+    ];
 
     return (
         <div className="w-full space-y-6">
@@ -119,10 +137,38 @@ export default async function MentorProposalsPage({
                 </Card>
             )}
 
+            <div className="flex flex-wrap gap-2">
+                {filtre.map((f) => {
+                    const activ = f.key === sursa;
+                    return (
+                        <Link
+                            key={f.key}
+                            href={f.key === 'toate' ? '/proposals' : `/proposals?sursa=${f.key}`}
+                            scroll={false}
+                            aria-current={activ ? 'page' : undefined}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                                activ
+                                    ? 'border-indigo-600 bg-indigo-600 text-white dark:border-indigo-500 dark:bg-indigo-500'
+                                    : 'border-slate-200 bg-white/80 text-slate-600 hover:border-indigo-300 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-indigo-700 dark:hover:text-indigo-300'
+                            }`}
+                        >
+                            {f.label}
+                            <span className={`rounded-full px-1.5 text-[10px] ${activ ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                                {f.count}
+                            </span>
+                        </Link>
+                    );
+                })}
+            </div>
+
             <div className="space-y-4">
-                {!proposalsList || proposalsList.length === 0 ? (
+                {proposalsList.length === 0 ? (
                     <Card className="border border-slate-200/80 bg-white/80 p-8 text-center text-sm font-medium text-slate-500 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-400">
-                        Nu există propuneri în așteptare.
+                        {sursa === 'ai'
+                            ? 'Nu există întrebări generate de AI în așteptare.'
+                            : sursa === 'studenti'
+                                ? 'Nu există propuneri de la studenți în așteptare.'
+                                : 'Nu există propuneri în așteptare.'}
                     </Card>
                 ) : (
                     proposalsList.map((question) => {
@@ -138,8 +184,7 @@ export default async function MentorProposalsPage({
                                         Propus de: <strong className="text-slate-700 dark:text-slate-200">{creatorName}</strong>
                                     </span>
                                     <div className="flex items-center gap-2">
-                                        {/* O propunere PENDING creată de un MENTOR este, prin construcție, generată de AI */}
-                                        {question.profiles?.role?.toUpperCase() === 'MENTOR' && (
+                                        {esteGenerataDeAi(question) && (
                                             <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:border-indigo-800/60 dark:bg-indigo-950/60 dark:text-indigo-300">
                                                 ✨ Generat de AI
                                             </span>
