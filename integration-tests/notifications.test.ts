@@ -42,7 +42,7 @@ describe('Notifications Integration', () => {
         // 3. Check notification as student
         setMockUserRole('STUDENT');
         const notifications = await getUserNotifications();
-        const notification = notifications.find(n => n.reference_id === testQuestionId);
+        const notification = notifications.find((n: any) => n.reference_id === testQuestionId);
         
         expect(notification).toBeDefined();
         expect(notification!.title).toContain('Approved');
@@ -55,7 +55,7 @@ describe('Notifications Integration', () => {
         await deleteNotification(notification!.id);
 
         const newNotifications = await getUserNotifications();
-        const stillExists = newNotifications.find(n => n.id === notification!.id);
+        const stillExists = newNotifications.find((n: any) => n.id === notification!.id);
         expect(stillExists).toBeUndefined();
 
         // Cleanup temp question
