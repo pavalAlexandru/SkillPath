@@ -10,7 +10,8 @@
         "test": "vitest",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test",
-        "gen:types": "supabase gen types typescript --project-id awxanbbjroyjahlknqvl --schema public > server/supabase/database.types.ts"
+        "gen:types": "supabase gen types typescript --project-id awxanbbjroyjahlknqvl --schema public > server/supabase/database.types.ts",
+        "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run -c vitest.integration.config.mts"
     },
     "dependencies": {
         "@google/genai": "^2.18.0",
