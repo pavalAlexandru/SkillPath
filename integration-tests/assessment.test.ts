@@ -46,16 +46,21 @@ describe('Assessment Integration', () => {
         const formattedQuestions = questionsData!.map(q => ({
             id: Number(q.id),
             categoryId: Number(q.category_id),
-            questionText: q.question_text,
+            questionText: String(q.question_text),
             difficulty: q.difficulty as any,
             questionType: q.question_type as any,
-            options: q.options
+            options: q.options.map((opt: any) => ({
+                id: Number(opt.id),
+                questionId: Number(q.id),
+                optionText: String(opt.option_text),
+                isCorrect: Boolean(opt.is_correct)
+            }))
         }));
 
         // Select the correct answers to get 100%
         const answers: Record<number, number[]> = {};
         for (const q of formattedQuestions) {
-            const correctOption = q.options.find((o: any) => o.is_correct);
+            const correctOption = q.options.find((o: any) => o.isCorrect);
             if (correctOption) {
                 answers[q.id] = [correctOption.id];
             }

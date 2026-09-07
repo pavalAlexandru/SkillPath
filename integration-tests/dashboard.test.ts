@@ -46,13 +46,18 @@ describe('Dashboard Integration', () => {
         const formattedQuestions = questionsData!.map(q => ({
             id: Number(q.id),
             categoryId: Number(q.category_id),
-            questionText: q.question_text,
+            questionText: String(q.question_text),
             difficulty: q.difficulty as any,
             questionType: q.question_type as any,
-            options: q.options
+            options: q.options.map((opt: any) => ({
+                id: Number(opt.id),
+                questionId: Number(q.id),
+                optionText: String(opt.option_text),
+                isCorrect: Boolean(opt.is_correct)
+            }))
         }));
 
-        const answers = { [formattedQuestions[0].id]: [formattedQuestions[0].options.find((o: any) => o.is_correct).id] };
+        const answers = { [formattedQuestions[0].id]: [formattedQuestions[0].options.find((o: any) => o.isCorrect)!.id] };
 
         // Save assessment
         const assessmentId = await saveCompletedAssessment(categoryId, 100, answers, formattedQuestions);

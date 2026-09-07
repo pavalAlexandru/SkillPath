@@ -2,7 +2,10 @@ import { vi, beforeAll } from 'vitest';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // BYPASS THE HARDCODED MOCKS IN THE APP
-process.env.NODE_ENV = 'development';
+Object.defineProperty(process.env, 'NODE_ENV', {
+    value: 'development',
+    configurable: true
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
