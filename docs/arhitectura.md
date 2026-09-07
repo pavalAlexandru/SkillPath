@@ -377,26 +377,20 @@ Realtime cere ca tabela să fie adăugată la publicația `supabase_realtime`, c
 | `config/aiConfig.ts` | limita zilnică de generare per mentor, maxim per lot |
 | `lib/levels.ts` | lista nivelurilor și ordinea lor |
 
-Variabile de mediu:
-
-| Variabilă | Unde | Scop |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | browser + server | URL-ul proiectului |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | browser + server | cheia publică, RLS se aplică |
-| `GEMINI_API_KEY` | server | apeluri AI |
-| `SUPABASE_SERVICE_ROLE_KEY` | doar teste de integrare | curățarea datelor de test, ocolește RLS |
-| `TEST_USER_PASSWORD` | doar teste de integrare | parola conturilor `student@test.com` și `mentor@test.com` |
+Variabilele de mediu și ce înseamnă fiecare sunt descrise în [README](../README.md#variabile-de-mediu).
 
 ## 11. Testare
 
-| Tip | Unealtă | Ce acoperă | Comandă |
-|---|---|---|---|
-| Unitar | Vitest + happy-dom | logica de scor și nivel, server actions cu Supabase și AI simulate, componente | `npm test` |
-| Integrare | Vitest + Supabase real | server actions cap-coadă pe baza de date: propunere și aprobare, test și scor, dashboard, notificări, chat, acțiuni de mentor | `npm run test:integration` |
+Două straturi, cu scopuri diferite:
 
-Testele unitare nu au nevoie de nimic extern. `npm run test:coverage` generează și raportul de acoperire.
+| Strat | Ce verifică | Ce e real, ce e simulat |
+|---|---|---|
+| Unitar (`unit-tests/`) | logica de scor și nivel, server actions, componente | Supabase și AI simulate; rulează fără nimic extern |
+| Integrare (`integration-tests/`) | server actions cap-coadă: propunere și aprobare, test și scor, dashboard, notificări, chat, acțiuni de mentor | Supabase real, cu două conturi de test (student și mentor) și un client cu cheie de serviciu pentru curățare |
 
-Testele de integrare (`integration-tests/`) rulează server actions reale pe proiectul Supabase din `.env.local`, cu două conturi de test autentificate (student și mentor) și un client cu cheie de serviciu pentru curățarea datelor la final. Fișierele rulează secvențial, ca să nu se calce pe date. `vitest.integration.setup.ts` înlocuiește `createClient` cu clientul rolului activ și dezactivează răspunsurile simulate. Folderele de teste sunt excluse din build (`tsconfig.json`).
+`vitest.integration.setup.ts` înlocuiește `createClient` cu clientul rolului activ și dezactivează răspunsurile simulate. Fișierele de integrare rulează secvențial, ca să nu se calce pe date. Folderele de teste sunt excluse din build (`tsconfig.json`).
+
+Comenzile, variabilele necesare și conturile de test sunt în [README](../README.md#testare).
 
 ## 12. Limitări cunoscute
 
