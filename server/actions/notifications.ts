@@ -27,7 +27,7 @@ export async function notifyQuestionOutcome(
   }
 
   // 2. Construct the notification details
-  const title = status === 'APPROVED' ? 'Question Approved' : 'Question Rejected';
+  const title = status === 'APPROVED' ? 'Întrebare aprobată' : 'Întrebare respinsă';
   
   // Truncate the question text for the message
   const truncatedText = question.question_text.length > 50 
@@ -35,8 +35,8 @@ export async function notifyQuestionOutcome(
     : question.question_text;
     
   const message = status === 'APPROVED' 
-    ? `Your proposed question "${truncatedText}" has been approved by a mentor.`
-    : `Your proposed question "${truncatedText}" was unfortunately rejected.`;
+    ? `Întrebarea propusă de tine „${truncatedText}” a fost aprobată de un mentor.`
+    : `Întrebarea propusă de tine „${truncatedText}” a fost respinsă.`;
     
   const type = status === 'APPROVED' ? 'QUESTION_ACCEPTED' : 'QUESTION_REJECTED';
 
