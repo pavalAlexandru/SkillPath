@@ -15,6 +15,15 @@ describe('Assessment Integration', () => {
     afterAll(async () => {
         // Cleanup all assessments created during tests
         if (createdAssessmentIds.length > 0) {
+            // Get recommendation IDs to delete resources first
+            const { data: recs } = await adminClient.from('learning_recommendations').select('id').in('assessment_id', createdAssessmentIds);
+            const recIds = recs?.map(r => r.id) || [];
+            
+            if (recIds.length > 0) {
+                await adminClient.from('recommendation_resources').delete().in('recommendation_id', recIds);
+                await adminClient.from('learning_recommendations').delete().in('id', recIds);
+            }
+
             await adminClient.from('assessment_answers').delete().in('assessment_question_id', 
                 (await adminClient.from('assessment_questions').select('id').in('assessment_id', createdAssessmentIds)).data?.map(q => q.id) || []
             );

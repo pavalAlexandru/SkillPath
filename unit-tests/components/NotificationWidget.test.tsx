@@ -76,14 +76,14 @@ describe('NotificationWidget', () => {
     const button = screen.getByRole('button', { name: /toggle notifications/i });
 
     // Initially popup is closed
-    expect(screen.queryByText('Notifications')).toBeNull();
+    expect(screen.queryByText('Notificări')).toBeNull();
 
     // Click to open
     fireEvent.click(button);
 
     // Now it should be open
     await waitFor(() => {
-      expect(screen.getByText('Notifications')).toBeDefined();
+      expect(screen.getByText('Notificări')).toBeDefined();
       expect(screen.getByText('Question Approved')).toBeDefined();
     });
 
@@ -91,7 +91,7 @@ describe('NotificationWidget', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.queryByText('Notifications')).toBeNull();
+      expect(screen.queryByText('Notificări')).toBeNull();
     });
   });
 
@@ -117,7 +117,7 @@ describe('NotificationWidget', () => {
     });
 
     // Find delete button
-    const deleteButton = screen.getByTitle('Delete notification');
+    const deleteButton = screen.getByTitle('Șterge notificarea');
     fireEvent.click(deleteButton);
 
     // Optimistic update should hide it

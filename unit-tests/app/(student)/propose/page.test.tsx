@@ -22,6 +22,7 @@ import ProposeQuestionPage from "@/app/(student)/propose/page";
 describe("app/(student)/propose/page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NODE_ENV = 'development';
     
     mocks.fromMock.mockReturnValue({ select: mocks.selectMock });
     mocks.selectMock.mockReturnValue({ eq: mocks.eqMock });

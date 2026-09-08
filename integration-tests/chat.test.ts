@@ -14,6 +14,7 @@ describe('Chat Integration', () => {
         if (testMessageIds.length > 0) {
             await adminClient.from('chat_messages').delete().in('id', testMessageIds);
         }
+        await adminClient.from('chat_messages').delete().like('content', 'Hello Vitest Chat%');
     });
 
     test('should allow user to send and retrieve chat messages', async () => {

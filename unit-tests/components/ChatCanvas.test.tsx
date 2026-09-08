@@ -106,7 +106,7 @@ describe('ChatCanvas Component', () => {
       />
     );
 
-    expect(screen.getByText(/No posts found in this thread yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nu a fost găsită nicio postare în această discuție/i)).toBeInTheDocument();
   });
 
   it('allows user to type and send a new message', async () => {
@@ -121,8 +121,8 @@ describe('ChatCanvas Component', () => {
       />
     );
 
-    const input = screen.getByPlaceholderText(/Type your reply here/i);
-    const button = screen.getByRole('button', { name: /Post Reply/i });
+    const input = screen.getByPlaceholderText(/Scrie răspunsul tău aici.../i);
+    const button = screen.getByRole('button', { name: /Postează Răspunsul/i });
 
     // Initial state
     expect(button).toBeDisabled();
@@ -173,10 +173,10 @@ describe('ChatCanvas Component', () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText(/Search thread/i);
+    const searchInput = screen.getByPlaceholderText(/Caută în discuție\.\.\./i);
     fireEvent.change(searchInput, { target: { value: 'help' } });
     
-    const searchButton = screen.getByRole('button', { name: /Search/i });
+    const searchButton = screen.getByRole('button', { name: /Caută/i });
     fireEvent.click(searchButton);
 
     expect(pushMock).toHaveBeenCalledWith('/forum?search=help');

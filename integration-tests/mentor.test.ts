@@ -20,6 +20,7 @@ describe('Mentor Actions Integration', () => {
         if (createdCategoryIds.length > 0) {
             await adminClient.from('categories').delete().in('id', createdCategoryIds);
         }
+        await adminClient.from('categories').delete().like('name', 'Test Category %');
         
         // Ensure student is active again if test fails
         if (studentUserId) {
