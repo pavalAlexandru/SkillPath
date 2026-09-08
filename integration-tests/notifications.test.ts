@@ -55,7 +55,7 @@ describe('Notifications Integration', () => {
         const notification = notifications.find((n: any) => n.reference_id === testQuestionId);
         
         expect(notification).toBeDefined();
-        expect(notification!.title).toContain('Approved');
+        expect(notification!.title).toContain('aprobată');
         
         if (notification) {
             createdNotificationIds.push(notification.id);

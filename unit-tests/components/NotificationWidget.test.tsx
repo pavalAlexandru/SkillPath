@@ -41,7 +41,7 @@ describe('NotificationWidget', () => {
     mocks.getUserNotificationsMock.mockResolvedValue([
       {
         id: 1,
-        title: 'Question Approved',
+        title: 'Întrebare aprobată',
         message: 'Your question was approved.',
         type: 'QUESTION_ACCEPTED',
         created_at: new Date().toISOString(),
@@ -64,7 +64,7 @@ describe('NotificationWidget', () => {
     mocks.getUserNotificationsMock.mockResolvedValue([
       {
         id: 1,
-        title: 'Question Approved',
+        title: 'Întrebare aprobată',
         message: 'Your question was approved.',
         type: 'QUESTION_ACCEPTED',
         created_at: new Date().toISOString(),
@@ -84,7 +84,7 @@ describe('NotificationWidget', () => {
     // Now it should be open
     await waitFor(() => {
       expect(screen.getByText('Notificări')).toBeDefined();
-      expect(screen.getByText('Question Approved')).toBeDefined();
+      expect(screen.getByText('Întrebare aprobată')).toBeDefined();
     });
 
     // Click again to close
