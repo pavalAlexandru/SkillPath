@@ -28,7 +28,7 @@
         "HARD": 6
       }
     },
-    "passingScorePercentage": 0,
-    "reviewThresholdPercentage": 0
+    "passingScorePercentage": 1,
+    "reviewThresholdPercentage": 1
   }
 }
