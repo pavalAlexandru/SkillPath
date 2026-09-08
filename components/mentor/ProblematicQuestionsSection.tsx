@@ -294,15 +294,7 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                                                 </div>
 
                                                 <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3.5 dark:border-indigo-950 dark:bg-indigo-950/20">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="font-bold text-indigo-950 dark:text-indigo-200">💡 Sugestie de reformulare pentru catalog:</h4>
-                                                        <Link
-                                                            href={`/questions?edit=${item.questionId}`}
-                                                            className="text-[11px] font-bold text-indigo-600 hover:underline dark:text-indigo-400"
-                                                        >
-                                                            Aplică în catalog →
-                                                        </Link>
-                                                    </div>
+                                                    <h4 className="font-bold text-indigo-950 dark:text-indigo-200">💡 Sugestie de reformulare pentru catalog:</h4>
                                                     <p className="mt-1.5 leading-relaxed text-indigo-900 dark:text-indigo-300">
                                                         {item.insight.suggestedRefinement}
                                                     </p>
