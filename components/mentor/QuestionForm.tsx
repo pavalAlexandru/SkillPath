@@ -19,10 +19,13 @@ export function QuestionForm({
                                  categories,
                                  question,
                                  returnTo = '/questions',
+                                 notaEnunt,
                              }: {
     categories: { id: number; name: string }[];
     question?: ExistingQuestion;
     returnTo?: string;
+    /** Mesaj scurt sub eticheta de enunț, de ex. când textul vine dintr-o sugestie AI */
+    notaEnunt?: string;
 }) {
     const esteEditare = question !== undefined;
 
@@ -67,14 +70,20 @@ export function QuestionForm({
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     Enunț
                 </label>
+                {notaEnunt && (
+                    <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">✨ {notaEnunt}</p>
+                )}
                 <textarea
+                    key={question?.question_text}
                     name="question_text"
                     required
                     minLength={5}
                     rows={2}
                     defaultValue={question?.question_text}
                     placeholder="Scrie enunțul întrebării..."
-                    className="w-full rounded-xl border border-slate-300 bg-white/90 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    className={`w-full rounded-xl border bg-white/90 px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                        notaEnunt ? 'border-indigo-400 dark:border-indigo-600' : 'border-slate-300 dark:border-slate-700'
+                    }`}
                 />
             </div>
 

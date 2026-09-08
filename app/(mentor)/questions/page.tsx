@@ -30,7 +30,7 @@ const PAGE_SIZE = 10;
 export default async function MentorQuestionsPage({
     searchParams,
 }: {
-    searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string; page?: string }>;
+    searchParams: Promise<{ search?: string; category?: string; difficulty?: string; sort?: string; edit?: string; page?: string; text?: string }>;
 }) {
     const params = await searchParams;
     const search = params.search ?? '';
@@ -111,7 +111,12 @@ export default async function MentorQuestionsPage({
     }
     const categoriiGrupate = [...grupePeCategorie.entries()].sort(([a], [b]) => a.localeCompare(b));
 
-    const intrebareEditata = editId ? questions?.find((q) => q.id === editId) : undefined;
+    const intrebareDinCatalog = editId ? questions?.find((q) => q.id === editId) : undefined;
+    // Venit din „Aplică în catalog” (panoul mentor): enunțul propus de AI înlocuiește textul curent în formular
+    const enuntPropus = params.text?.trim();
+    const intrebareEditata = intrebareDinCatalog && enuntPropus
+        ? { ...intrebareDinCatalog, question_text: enuntPropus }
+        : intrebareDinCatalog;
     const areFiltre = search !== '' || category !== '' || difficulty !== '';
 
     return (
@@ -126,7 +131,11 @@ export default async function MentorQuestionsPage({
                 <h2 className="mb-4 text-base font-bold text-slate-900 dark:text-white">
                     {intrebareEditata ? 'Editează întrebarea' : 'Adaugă întrebare nouă'}
                 </h2>
-                <QuestionForm categories={categories ?? []} question={intrebareEditata} />
+                <QuestionForm
+                    categories={categories ?? []}
+                    question={intrebareEditata}
+                    notaEnunt={intrebareEditata && enuntPropus ? 'Enunț propus de AI. Verifică-l înainte să salvezi.' : undefined}
+                />
             </Card>
 
             {/* Filtre */}
