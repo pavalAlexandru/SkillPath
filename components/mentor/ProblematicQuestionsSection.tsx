@@ -15,13 +15,6 @@ interface Props {
     categories: { id: number; name: string }[];
 }
 
-// AI-ul răspunde uneori cu „Reformulare: '...'”; păstrăm doar enunțul, ca să intre curat în formular
-function extrageEnunt(sugestie: string): string {
-    let text = sugestie.trim().replace(/^reformulare\s*[:\-–]\s*/i, '');
-    text = text.replace(/^["'„”“‘’]+/, '').replace(/["'„”“‘’]+[.]?$/, '');
-    return text.trim();
-}
-
 export function ProblematicQuestionsSection({ initialQuestions, categories }: Props) {
     const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
     const [questions, setQuestions] = useState<ProblematicQuestion[]>(initialQuestions);
@@ -304,7 +297,7 @@ export function ProblematicQuestionsSection({ initialQuestions, categories }: Pr
                                                     <div className="flex items-center justify-between">
                                                         <h4 className="font-bold text-indigo-950 dark:text-indigo-200">💡 Sugestie de reformulare pentru catalog:</h4>
                                                         <Link
-                                                            href={`/questions?edit=${item.questionId}&text=${encodeURIComponent(extrageEnunt(item.insight.suggestedRefinement))}`}
+                                                            href={`/questions?edit=${item.questionId}`}
                                                             className="text-[11px] font-bold text-indigo-600 hover:underline dark:text-indigo-400"
                                                         >
                                                             Aplică în catalog →
