@@ -166,7 +166,11 @@ export async function saveCompletedAssessment(
                 assessment_question_id: aq.id,
                 option_id: optId,
             }));
-            await supabase.from('assessment_answers').insert(answersToInsert);
+            const { error: ansErr } = await supabase.from('assessment_answers').insert(answersToInsert);
+            if (ansErr) {
+                // Fără log, un refuz RLS lasă încercarea salvată fără bife și statisticile mentorului arată 0%
+                console.error('Eroare inserare in assessment_answers:', ansErr.message);
+            }
         }
     }
 

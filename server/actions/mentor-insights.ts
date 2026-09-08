@@ -114,6 +114,9 @@ export async function getTopProblematicQuestions(categoryIdFilter?: number): Pro
         const q = aq.question;
         if (!q) continue;
         if (categoryIdFilter && q.category_id !== categoryIdFilter) continue;
+        // O încercare fără nicio bifă nu poate veni din interfață (nu poți trece mai departe fără selecție);
+        // vine din scripturi/teste sau dintr-o inserare eșuată. O ignorăm, altfel apare ca „greșită” cu 0% pe toate variantele.
+        if (!aq.answers || aq.answers.length === 0) continue;
 
         if (!questionStatsMap.has(q.id)) {
             questionStatsMap.set(q.id, {
