@@ -114,7 +114,7 @@ export function NotificationWidget() {
                     <h4 className="text-sm font-medium mb-1 pr-6 text-gray-800 dark:text-gray-200">{notification.title}</h4>
                     <p className="text-xs text-gray-600 dark:text-gray-400">{notification.message}</p>
                     <span className="text-[10px] text-gray-400 mt-2 block">
-                      {new Date(notification.created_at).toLocaleDateString()}
+                      {new Date(notification.created_at).toLocaleDateString('ro-RO')}
                     </span>
                   </li>
                 ))}
