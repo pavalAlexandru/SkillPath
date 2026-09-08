@@ -27,6 +27,7 @@ vi.mock('next/cache', () => ({
 describe('proposeQuestionAction', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        process.env.NODE_ENV = 'development';
         
         mocks.fromMock.mockReturnValue({
             insert: mocks.insertMock,

@@ -16,6 +16,16 @@ describe('Notifications Integration', () => {
         if (createdNotificationIds.length > 0) {
             await adminClient.from('notifications').delete().in('id', createdNotificationIds);
         }
+        await adminClient.from('notifications').delete().like('title', '%Temp for Notification%');
+        
+        // Also cleanup by pattern in case test failed early
+        const { data: leakedQuestions } = await adminClient.from('questions').select('id').like('question_text', 'Temp for Notification %');
+        if (leakedQuestions && leakedQuestions.length > 0) {
+            const leakedIds = leakedQuestions.map(q => q.id);
+            await adminClient.from('notifications').delete().in('reference_id', leakedIds);
+            await adminClient.from('question_options').delete().in('question_id', leakedIds);
+            await adminClient.from('questions').delete().in('id', leakedIds);
+        }
     });
 
     test('should create, retrieve, and delete notification', async () => {

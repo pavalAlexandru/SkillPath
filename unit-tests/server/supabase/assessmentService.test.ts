@@ -32,6 +32,7 @@ describe('assessmentService - Persistence & Level Up Engine', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        process.env.NODE_ENV = 'development';
 
         mockSupabase = {
             auth: {

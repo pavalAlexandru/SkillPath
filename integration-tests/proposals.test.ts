@@ -18,6 +18,14 @@ describe('Question Proposal Integration', () => {
             await adminClient.from('question_options').delete().in('question_id', createdQuestionIds);
             await adminClient.from('questions').delete().in('id', createdQuestionIds);
         }
+        
+        // Also cleanup by pattern in case test failed early
+        const { data: leakedQuestions } = await adminClient.from('questions').select('id').like('question_text', 'Test Proposal %');
+        if (leakedQuestions && leakedQuestions.length > 0) {
+            const leakedIds = leakedQuestions.map(q => q.id);
+            await adminClient.from('question_options').delete().in('question_id', leakedIds);
+            await adminClient.from('questions').delete().in('id', leakedIds);
+        }
     });
 
     test('should allow student to propose and mentor to approve', async () => {

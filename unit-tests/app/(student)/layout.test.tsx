@@ -34,7 +34,7 @@ describe('StudentLayout Component', () => {
             from: vi.fn().mockReturnValue({
                 select: vi.fn().mockReturnValue({
                     eq: vi.fn().mockReturnValue({
-                        single: vi.fn().mockResolvedValue({
+                        maybeSingle: vi.fn().mockResolvedValue({
                             data: { first_name: 'Larisa', last_name: 'Tiflea' },
                         }),
                     }),
@@ -65,7 +65,7 @@ describe('StudentLayout Component', () => {
             from: vi.fn().mockReturnValue({
                 select: vi.fn().mockReturnValue({
                     eq: vi.fn().mockReturnValue({
-                        single: vi.fn().mockResolvedValue({
+                        maybeSingle: vi.fn().mockResolvedValue({
                             data: { first_name: 'Larisa', last_name: 'Tiflea' },
                         }),
                     }),
