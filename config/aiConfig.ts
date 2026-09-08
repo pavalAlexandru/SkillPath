@@ -6,10 +6,22 @@ export interface AiConfig {
     maxQuestionsPerBatch: number;
 }
 
+import staticSettings from './settings.json';
+
 // -------------------------------------------------------------
-// VALORILE CONFIGURABILE (Modifică direct aici numerele dorite)
+// VALORILE CONFIGURABILE
 // -------------------------------------------------------------
-export const aiConfig: AiConfig = {
-    dailyGenerationLimitPerMentor: 10,
-    maxQuestionsPerBatch: 5,
-};
+let aiSettings: AiConfig;
+
+if (typeof window === 'undefined') {
+    // Server-side: citire dinamică fără rebuild
+    const fs = eval('require("fs")');
+    const path = eval('require("path")');
+    const filePath = path.join(process.cwd(), 'config', 'settings.json');
+    aiSettings = JSON.parse(fs.readFileSync(filePath, 'utf8')).ai;
+} else {
+    // Client-side: folosim importul static ca fallback
+    aiSettings = staticSettings.ai;
+}
+
+export const aiConfig: AiConfig = aiSettings;

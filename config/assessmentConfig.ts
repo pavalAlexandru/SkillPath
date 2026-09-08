@@ -1,4 +1,6 @@
-import { StudentLevel, DifficultyLevel } from '@/types/assesments';
+import { StudentLevel } from '@/types/assesments';
+
+import staticSettings from './settings.json';
 
 export interface DifficultyCount {
     EASY: number;
@@ -27,45 +29,18 @@ export interface AssessmentConfig {
 }
 
 // -------------------------------------------------------------
-// VALORILE CONFIGURABILE (Modifică direct aici numerele dorite)
+// VALORILE CONFIGURABILE
 // -------------------------------------------------------------
-const RAW_CONFIG: AssessmentConfig = {
-    // 1. Număr întrebări test standard (Limita: 2 - 50)
-    standardQuestionCount: 10,
+let RAW_CONFIG: AssessmentConfig;
 
-    // 2. Număr întrebări onboarding (Limita: 10 - 100)
-    onboardingQuestionCount: 15,
-
-    // Distribuția exactă pentru Onboarding (Suma este egală cu onboardingQuestionCount = 15)
-    onboardingDifficultyDistribution: {
-        EASY: 6,
-        MEDIUM: 6,
-        HARD: 3,
-    },
-
-    // Distribuția exactă pe nivele pentru testul standard (Suma pe fiecare nivel este egală cu standardQuestionCount = 10)
-    difficultyDistribution: {
-        JUNIOR: {
-            EASY: 5,
-            MEDIUM: 3,
-            HARD: 2,
-        },
-        MIDDLE: {
-            EASY: 2,
-            MEDIUM: 5,
-            HARD: 3,
-        },
-        SENIOR: {
-            EASY: 1,
-            MEDIUM: 3,
-            HARD: 6,
-        },
-    },
-
-    // 3. Praguri de notare (Limita: 1 - 100)
-    passingScorePercentage: 90,
-    reviewThresholdPercentage: 60,
-};
+if (typeof window === 'undefined') {
+    const fs = eval('require("fs")');
+    const path = eval('require("path")');
+    const filePath = path.join(process.cwd(), 'config', 'settings.json');
+    RAW_CONFIG = JSON.parse(fs.readFileSync(filePath, 'utf8')).assessment;
+} else {
+    RAW_CONFIG = staticSettings.assessment;
+}
 
 // -------------------------------------------------------------
 // VALIDATOR AUTOMAT (Aruncă eroare clară dacă o regulă este încălcată)

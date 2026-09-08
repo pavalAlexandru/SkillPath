@@ -1,0 +1,34 @@
+{
+  "ai": {
+    "dailyGenerationLimitPerMentor": 10,
+    "maxQuestionsPerBatch": 5
+  },
+  "assessment": {
+    "standardQuestionCount": 10,
+    "onboardingQuestionCount": 15,
+    "onboardingDifficultyDistribution": {
+      "EASY": 6,
+      "MEDIUM": 6,
+      "HARD": 3
+    },
+    "difficultyDistribution": {
+      "JUNIOR": {
+        "EASY": 5,
+        "MEDIUM": 3,
+        "HARD": 2
+      },
+      "MIDDLE": {
+        "EASY": 2,
+        "MEDIUM": 5,
+        "HARD": 3
+      },
+      "SENIOR": {
+        "EASY": 1,
+        "MEDIUM": 3,
+        "HARD": 6
+      }
+    },
+    "passingScorePercentage": 0,
+    "reviewThresholdPercentage": 0
+  }
+}
