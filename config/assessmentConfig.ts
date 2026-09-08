@@ -31,16 +31,7 @@ export interface AssessmentConfig {
 // -------------------------------------------------------------
 // VALORILE CONFIGURABILE
 // -------------------------------------------------------------
-let RAW_CONFIG: AssessmentConfig;
-
-if (typeof window === 'undefined') {
-    const fs = eval('require("fs")');
-    const path = eval('require("path")');
-    const filePath = path.join(process.cwd(), 'config', 'settings.json');
-    RAW_CONFIG = JSON.parse(fs.readFileSync(filePath, 'utf8')).assessment;
-} else {
-    RAW_CONFIG = staticSettings.assessment;
-}
+let RAW_CONFIG: AssessmentConfig = staticSettings.assessment;
 
 // -------------------------------------------------------------
 // VALIDATOR AUTOMAT (Aruncă eroare clară dacă o regulă este încălcată)
