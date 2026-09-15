@@ -2,7 +2,7 @@
 
 Platformă de evaluare pentru programatori juniori. Studentul își măsoară nivelul pe categorii prin teste grilă și avansează de la Junior la Middle și Senior. Mentorul întreține categoriile și întrebările, aprobă propunerile studenților și generează întrebări noi cu AI.
 
-Aplicație live: _[completați link-ul Vercel]_
+Aplicație live: https://skill-path-trenul.vercel.app/
 
 ## Cuprins
 
